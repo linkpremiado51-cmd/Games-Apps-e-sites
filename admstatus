@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Cliques | God of War Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d32f2f;
+            --success: #4caf50;
+            --danger: #f44336;
+            --text: #333;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --border: #ddd;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: clamp(1.5rem, 5vw, 2rem);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .filter-select, .export-btn, .clear-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+            min-width: 120px;
+            flex: 1;
+        }
+
+        .filter-select { background: #fff; border: 1px solid var(--border); }
+        .export-btn { background: var(--success); color: white; }
+        .clear-btn { background: var(--danger); color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+        }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            word-wrap: break-word;
+        }
+
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .ip-group {
+            background: #e3f2fd;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+            font-size: 0.9rem;
+        }
+
+        .ip-count {
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #333;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.4s ease;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast i {
+            font-size: 1.3rem;
+        }
+
+        .toast.access { border-left: 4px solid #4caf50; }
+        .toast.download { border-left: 4px solid #2196f3; }
+
+        .toast .close {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .controls { flex-direction: column; align-items: stretch; }
+            table { font-size: 0.75rem; }
+            th, td { padding: 8px 6px; }
+            .toast-container { top: 10px; width: 95%; }
+            .toast { padding: 12px 16px; font-size: 0.9rem; }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.4rem; }
+            .controls button, .controls select { font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Admin - Cliques do Tracker</h1>
+
+        <div class="controls">
+            <select class="filter-select" id="filterSelect" onchange="filterTable()">
+                <option value="">Todos os Tipos</option>
+                <option value="acesso">Acessos</option>
+                <option value="download_jogo">Downloads de Jogo</option>
+                <option value="download_emulador">Downloads de Emulador</option>
+            </select>
+            <button class="export-btn" onclick="exportCSV()">Exportar CSV</button>
+            <button class="clear-btn" onclick="clearAll()">Limpar Tudo</button>
+        </div>
+
+        <div class="loading" id="loading">Carregando cliques...</div>
+        <table id="cliquesTable" style="display:none">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Data/Hora</th>
+                    <th>User Agent</th>
+                    <th>Referrer</th>
+                    <th>URL</th>
+                    <th>IP</th>
+                    <th>Autenticado</th>
+                    <th>User ID</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <h2>Acessos por IP (Repetidos)</h2>
+        <div id="ipGroups"></div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
+    <script>
+        // === CONFIGURAÇÃO FIREBASE ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9vB_annutvZByThKrsPJbsP9VZ7gyWB0",
+            authDomain: "sorteio-mega-sorte.firebaseapp.com",
+            projectId: "sorteio-mega-sorte",
+            storageBucket: "sorteio-mega-sorte.appspot.com",
+            messagingSenderId: "776750928407",
+            appId: "1:776750928407:web:72da06debB97302b5c252"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const messaging = firebase.messaging.isSupported() ? firebase.messaging() : null;
+
+        let cliquesData = [];
+        let currentToken = null;
+
+        // === CHAVE VAPID (JÁ COLADA) ===
+        const VAPID_KEY = 'BHcZ_iI6hl04CiBrBLyqMifFCIj12jLwk0OMT3WEIUxtlmGBdEU6FEwdB3TAJAt6V7vJN10hyUadYHJwNEq02-4';
+
+        // === PEDIR PERMISSÃO E GERAR TOKEN FCM ===
+        async function registerPush() {
+            if (!messaging) return;
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const token = await messaging.getToken({ vapidKey: VAPID_KEY });
+                    currentToken = token;
+                    console.log('Token FCM (salvo no Firestore):', token);
+
+                    // Salva token no Firestore
+                    await db.collection('adminTokens').doc('admin').set({ token }, { merge: true });
+                    showToast('push', 'Notificações ativadas!', 'Você receberá alertas no celular');
+                }
+            } catch (err) {
+                console.error('Erro FCM:', err);
+            }
+        }
+
+        // === TOAST PERSONALIZADO ===
+        function showToast(tipo, title, body) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo === 'push' ? 'access' : tipo.includes('download') ? 'download' : 'access'} show`;
+
+            const icon = tipo === 'push' ? 'fas fa-bell' : tipo === 'acesso' ? 'fas fa-user' : 'fas fa-download';
+
+            toast.innerHTML = `
+                <i class="${icon}"></i>
+                <div>
+                    <strong>${title}</strong><br>
+                    <small>${body}</small>
+                </div>
+                <span class="close" onclick="this.parentElement.remove()">×</span>
+            `;
+
+            container.prepend(toast);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 8000);
+        }
+
+        // === ENVIAR PUSH VIA CLOUD FUNCTION (JÁ EXISTE NO SEU PROJETO) ===
+        async function sendPush(title, body) {
+            if (!currentToken) return;
+
+            try {
+                await fetch('https://us-central1-sorteio-mega-sorte.cloudfunctions.net/sendPush', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, body })
+                });
+            } catch (err) {
+                console.error('Erro ao enviar push:', err);
+            }
+        }
+
+        // === LISTENER EM TEMPO REAL ===
+        function loadCliques() {
+            const loading = document.getElementById('loading');
+            const table = document.getElementById('cliquesTable');
+            loading.style.display = 'block';
+            table.style.display = 'none';
+
+            db.collection("cliques")
+              .orderBy("timestamp", "desc")
+              .onSnapshot(snapshot => {
+                  const changes = snapshot.docChanges();
+                  changes.forEach(change => {
+                      if (change.type === "added") {
+                          const data = change.doc.data();
+                          const tipo = data.tipo || '';
+                          const ip = data.ip || 'Desconhecido';
+                          const ua = (data.userAgent || '').substring(0, 30) + '...';
+
+                          if (tipo === "acesso" || tipo.includes("download")) {
+                              showToast(tipo, tipo === 'acesso' ? 'Novo Acesso' : 'Download Iniciado', `IP: ${ip} | ${ua}`);
+                              sendPush(tipo === 'acesso' ? 'Novo Acesso!' : 'Download!', `IP: ${ip}`);
+                          }
+                      }
+                  });
+
+                  cliquesData = [];
+                  snapshot.forEach(doc => {
+                      cliquesData.push({ id: doc.id, ...doc.data() });
+                  });
+
+                  renderTable();
+                  renderIPGroups();
+                  loading.style.display = 'none';
+                  table.style.display = 'table';
+              });
+        }
+
+        // === RENDERIZAR TABELA ===
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const filter = document.getElementById('filterSelect').value;
+            const filtered = cliquesData.filter(c => !filter || c.tipo === filter);
+
+            filtered.forEach(clique => {
+                const row = tbody.insertRow();
+                const date = clique.timestamp?.toDate?.() || new Date(clique.timestamp || Date.now());
+                row.innerHTML = `
+                    <td><strong>${clique.tipo || 'N/A'}</strong></td>
+                    <td>${date.toLocaleString('pt-BR')}</td>
+                    <td title="${clique.userAgent || ''}">${(clique.userAgent || '').substring(0, 35)}...</td>
+                    <td>${clique.referrer || 'Direto'}</td>
+                    <td title="${clique.url || ''}">${(clique.url || '').substring(0, 35)}...</td>
+                    <td><strong>${clique.ip || 'Desconhecido'}</strong></td>
+                    <td>${clique.isAuthenticated ? 'Sim' : 'Não'}</td>
+                    <td>${clique.userId || 'anônimo'}</td>
+                    <td><button class="delete-btn" onclick="deleteClique('${clique.id}')">Apagar</button></td>
+                `;
+            });
+        }
+
+        function renderIPGroups() {
+            const groups = {};
+            cliquesData.forEach(c => {
+                const ip = c.ip || 'Desconhecido';
+                groups[ip] = (groups[ip] || 0) + 1;
+            });
+
+            const container = document.getElementById('ipGroups');
+            container.innerHTML = '';
+            Object.entries(groups)
+              .sort(([,a], [,b]) => b - a)
+              .forEach(([ip, count]) => {
+                  const div = document.createElement('div');
+                  div.className = 'ip-group';
+                  div.innerHTML = `<span class="ip-count">${ip}:</span> ${count} cliques`;
+                  container.appendChild(div);
+              });
+        }
+
+        function deleteClique(id) {
+            if (confirm("Apagar este registro?")) {
+                db.collection("cliques").doc(id).delete()
+                  .then(() => alert("Apagado!"))
+                  .catch(err => alert("Erro: " + err.message));
+            }
+        }
+
+        function clearAll() {
+            if (confirm("APAGAR TODOS OS CLIQUES? Isso não tem volta!")) {
+                const batch = db.batch();
+                cliquesData.forEach(c => batch.delete(db.collection("cliques").doc(c.id)));
+                batch.commit()
+                  .then(() => alert("Tudo apagado!"))
+                  .catch(err => alert("Erro: " + err.message));
+            }
+        }
+
+        function exportCSV() {
+            let csv = 'Tipo,Data/Hora,User Agent,Referrer,URL,IP,Autenticado,User ID\n';
+            cliquesData.forEach(c => {
+                const date = c.timestamp?.toDate?.() || new Date(c.timestamp || Date.now());
+                csv += `"${c.tipo || 'N/A'}","${date.toLocaleString('pt-BR')}","${(c.userAgent||'').replace(/"/g,'""')}","${c.referrer || 'Direto'}","${c.url || ''}","${c.ip || 'Desconhecido'}","${c.isAuthenticated}","${c.userId || 'anônimo'}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cliques_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("CSV exportado!");
+        }
+
+        function filterTable() {
+            renderTable();
+        }
+
+        // === INICIAR ===
+        window.onload = () => {
+            loadCliques();
+            registerPush(); // ← Pede permissão automaticamente
+        };
+    </script>
+</body>
+</html>
