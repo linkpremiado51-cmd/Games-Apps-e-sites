@@ -31,7 +31,6 @@
             --font-size-md: clamp(1rem, 2.5vw, 1.1rem);
             --font-size-lg: clamp(1.2rem, 3vw, 1.5rem);
         }
-
         [data-theme="dark"] {
             --text-primary: #f9fafb;
             --text-secondary: #b8c0d0;
@@ -46,9 +45,7 @@
             --report-error-color: #a78bfa;
             --report-error-hover: #8b5cf6;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-
         body {
             font-family: 'Jura', sans-serif;
             font-weight: 400;
@@ -66,7 +63,6 @@
             overscroll-behavior-x: none;
             scroll-behavior: smooth;
         }
-
         .header {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -81,11 +77,9 @@
             z-index: 1001;
             box-shadow: 0 2px 10px var(--shadow-color);
         }
-
         [data-theme="dark"] .header {
             background: rgba(18, 21, 32, 0.9);
         }
-
         .header__title {
             font-family: 'Ubuntu', sans-serif;
             font-weight: 700;
@@ -93,7 +87,6 @@
             color: var(--highlight-color);
             text-shadow: 0 0 5px rgba(211, 47, 47, 0.3);
         }
-
         .header__nav { display: flex; gap: var(--spacing-sm); }
         .header__theme-toggle {
             font-family: 'Ubuntu', sans-serif;
@@ -110,7 +103,6 @@
             background: none;
             border: 1px solid var(--border);
         }
-
         .main-container {
             max-width: 800px;
             width: 95%;
@@ -119,7 +111,6 @@
             flex-direction: column;
             gap: 20px;
         }
-
         /* IMAGEM 50% MENOR */
         .game-image {
             width: 100%;
@@ -129,13 +120,11 @@
             overflow: hidden;
             box-shadow: 0 6px 30px var(--shadow-color);
         }
-
         .game-image img {
             width: 100%;
             height: auto;
             display: block;
         }
-
         .info-card {
             background: var(--surface);
             padding: 20px;
@@ -146,37 +135,31 @@
             gap: 16px;
             border: 1px solid var(--border);
         }
-
         .title {
             font-size: var(--font-size-lg);
             font-weight: 700;
             color: var(--highlight-color);
         }
-
         .episode {
             font-size: var(--font-size-md);
             color: var(--text-secondary);
         }
-
         .duration {
             font-size: var(--font-size-sm);
             color: var(--text-secondary);
             display: block;
         }
-
         .synopsis {
             font-size: var(--font-size-sm);
             line-height: 1.6;
             color: var(--text-primary);
         }
-
         .specs-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 12px;
             margin: 15px 0 25px;
         }
-
         .spec {
             background: rgba(0, 0, 0, 0.05);
             padding: 10px 14px;
@@ -184,33 +167,26 @@
             border-left: 3px solid var(--highlight-color);
             font-size: 0.9em;
         }
-
         [data-theme="dark"] .spec {
             background: rgba(255, 255, 255, 0.1);
         }
-
-        .spec-label { 
-            font-size: 0.75em; 
-            color: #666; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            margin-bottom: 2px; 
+        .spec-label {
+            font-size: 0.75em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
         }
-
         [data-theme="dark"] .spec-label { color: #888; }
-
-        .spec-value { 
-            font-weight: 600; 
-            color: var(--text-primary); 
+        .spec-value {
+            font-weight: 600;
+            color: var(--text-primary);
         }
-
-        .spec-value a { 
-            color: var(--episodes-color); 
-            text-decoration: none; 
+        .spec-value a {
+            color: var(--episodes-color);
+            text-decoration: none;
         }
-
         .spec-value a:hover { text-decoration: underline; }
-
         .actions {
             display: flex;
             justify-content: flex-start;
@@ -218,7 +194,6 @@
             flex-wrap: wrap;
             margin-top: 10px;
         }
-
         .action-button {
             padding: 10px 20px;
             border: none;
@@ -236,14 +211,12 @@
             color: #fff;
             border-radius: 8px;
         }
-        
         .action-button.download { background: #1f2937; }
         .action-button.download:hover { background: #111827; transform: scale(1.05); }
         .action-button.emulator { background: var(--episodes-color); }
         .action-button.emulator:hover { background: var(--episodes-hover); transform: scale(1.05); }
         .action-button.report-error { background: var(--report-error-color); }
         .action-button.report-error:hover { background: var(--report-error-hover); transform: scale(1.05); }
-
         .ad-alert {
             background: rgba(251, 191, 36, 0.15);
             border-left: 3px solid #f59e0b;
@@ -253,7 +226,6 @@
             color: var(--text-primary);
         }
         .ad-alert strong { color: #d97706; }
-
         .stats {
             display: flex;
             justify-content: space-around;
@@ -267,18 +239,17 @@
             border: 1px solid var(--border);
         }
         .stat-item { text-align: center; min-width: 100px; }
-        .stat-number { 
-            font-size: 1.6em; 
-            font-weight: 700; 
-            color: var(--highlight-color); 
-            display: block; 
+        .stat-number {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--highlight-color);
+            display: block;
         }
-        .stat-label { 
-            color: var(--text-secondary); 
-            margin-top: 4px; 
-            font-size: 0.85em; 
+        .stat-label {
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-size: 0.85em;
         }
-
         .notification {
             position: fixed;
             top: 50%;
@@ -299,14 +270,12 @@
             pointer-events: none;
         }
         .notification.show { opacity: 1; }
-
         /* === TRAILER 100% LARGURA, SEM BORDAS === */
         .trailer-full {
             width: 100%;
             margin: 30px 0;
             padding: 0 var(--spacing-md);
         }
-
         .video-wrapper {
             position: relative;
             width: 100%;
@@ -314,7 +283,6 @@
             padding-bottom: 56.25%; /* Proporção 16:9 */
             overflow: hidden;
         }
-
         .video-wrapper iframe {
             position: absolute;
             top: 0;
@@ -325,14 +293,12 @@
             border-radius: 0 !important;
             box-shadow: none !important;
         }
-
         @media (max-width: 768px) {
             .action-button { min-width: 120px; font-size: var(--font-size-xs); padding: 8px 15px; }
             .specs-grid { grid-template-columns: 1fr; }
             .game-image { max-width: 300px; }
             .trailer-full { padding: 0 10px; }
         }
-
         /* === MODAL REPORTAR ERRO === */
         .modal {
             position: fixed;
@@ -346,12 +312,10 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
-
         .modal.show {
             opacity: 1;
             pointer-events: auto;
         }
-
         .modal-content {
             background: var(--surface);
             padding: 25px;
@@ -361,20 +325,17 @@
             box-shadow: 0 10px 30px var(--shadow-color);
             border: 1px solid var(--border);
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-
         .modal-title {
             font-size: var(--font-size-lg);
             color: var(--highlight-color);
             font-weight: 700;
         }
-
         .close-modal {
             background: none;
             border: none;
@@ -382,7 +343,6 @@
             cursor: pointer;
             color: var(--text-secondary);
         }
-
         .error-option {
             padding: 12px 16px;
             margin: 8px 0;
@@ -393,23 +353,19 @@
             font-size: 0.95rem;
             border: 1px solid transparent;
         }
-
         [data-theme="dark"] .error-option {
             background: rgba(255,255,255,0.1);
         }
-
         .error-option:hover {
             background: var(--episodes-color);
             color: white;
             transform: translateX(5px);
         }
-
         .error-option.selected {
             background: var(--highlight-color);
             color: white;
             border-color: var(--highlight-color);
         }
-
         .submit-report {
             margin-top: 20px;
             padding: 12px 20px;
@@ -422,12 +378,10 @@
             width: 100%;
             font-size: 1rem;
         }
-
         .submit-report:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
-
         #countdown {
             font-size: 3em;
             font-weight: bold;
@@ -446,24 +400,19 @@
             </button>
         </nav>
     </header>
-
     <div class="main-container">
-
         <!-- IMAGEM PRINCIPAL (50% MENOR) -->
         <div class="game-image">
             <img src="https://i.postimg.cc/g26DWhPZ/God-of-War-Ghost-of-Sparta-1.jpg" alt="God of War Ghost of Sparta">
         </div>
-
         <!-- INFORMAÇÕES + BOTÕES -->
         <div class="info-card">
             <div class="title">God of War – Ghost of Sparta</div>
             <div class="episode">Tela Principal</div>
             <div class="duration">Plataforma: PSP</div>
-
             <div class="ad-alert">
                 <strong>Aviso:</strong> Um anúncio será exibido antes do download. Espere 10 segundos na página do anúncio antes de voltar para a tela do jogo para baixar.
             </div>
-
             <div class="actions">
                 <button class="action-button download" id="downloadBtn">
                     <i class="fas fa-download"></i> Baixar Jogo (1.07 GB)
@@ -476,20 +425,18 @@
                 </button>
             </div>
         </div>
-
         <!-- TRAILER DO YOUTUBE - 100% LARGURA, SEM BORDAS -->
         <div class="trailer-full">
             <div class="video-wrapper">
-                <iframe 
-                    src="https://www.youtube.com/embed/bDN3aUzyctY" 
-                    title="God of War: Ghost of Sparta Trailer" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                <iframe
+                    src="https://www.youtube.com/embed/bDN3aUzyctY"
+                    title="God of War: Ghost of Sparta Trailer"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen>
                 </iframe>
             </div>
         </div>
-
         <!-- ESPECIFICAÇÕES -->
         <div class="info-card">
             <div class="specs-grid">
@@ -498,11 +445,9 @@
                 <div class="spec"><div class="spec-label">Gênero</div><div class="spec-value">Ação, Aventura</div></div>
                 <div class="spec"><div class="spec-label">Região</div><div class="spec-value">Ásia, UE, Japão, EUA</div></div>
             </div>
-
             <h2>Sinopse</h2>
             <p>God of War: Ghost of Sparta é um jogo eletrônico de ação e aventura desenvolvido pela Ready at Dawn e publicado pela Sony Computer Entertainment, lançado para o PlayStation Portable (PSP). O jogo se passa entre God of War e God of War II. Ele segue o guerreiro espartano Kratos, que ainda é assombrado por visões de seu passado mortal e decide explorar suas origens. Kratos viaja para o Reino de Atlântida e encontra sua mãe, Callisto, que o revela que seu irmão, Deimos, ainda está vivo e aprisionado pelo deus da morte, Thanatos. Kratos embarca em uma jornada para resgatar seu irmão e confrontar o deus da morte, revelando mais sobre seu passado e sua marca de nascença.</p>
         </div>
-
         <!-- ESTATÍSTICAS -->
         <div class="stats">
             <div class="stat-item"><div class="stat-number">142.594</div><div class="stat-label">Visualizações</div></div>
@@ -510,7 +455,6 @@
             <div class="stat-item"><div class="stat-number">02/11/2010</div><div class="stat-label">Lançamento</div></div>
         </div>
     </div>
-
     <!-- MODAL REPORTAR ERRO -->
     <div class="modal" id="reportModal">
         <div class="modal-content">
@@ -525,7 +469,6 @@
             <button class="submit-report" id="submitReport" disabled>Enviar Relatório</button>
         </div>
     </div>
-
     <!-- MODAL CONTADOR -->
     <div class="modal" id="countdownModal">
         <div class="modal-content">
@@ -536,14 +479,11 @@
             <div id="countdown">10</div>
         </div>
     </div>
-
     <div class="notification" id="notification"></div>
-
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
     <script>
         // === CONFIGURAÇÃO FIREBASE ===
         const firebaseConfig = {
@@ -557,17 +497,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-
         let isAuthenticated = false;
         let userId = null;
         let userIP = null;
         let selectedError = null;
-
         auth.onAuthStateChanged(user => {
             isAuthenticated = !!user;
             userId = user ? user.uid : "anônimo";
         });
-
         // === BUSCAR IP ===
         async function getUserIP() {
             const apis = ['https://ipapi.co/json/', 'https://api.ipify.org?format=json', 'https://ipinfo.io/json'];
@@ -584,7 +521,6 @@
             }
             return 'Desconhecido';
         }
-
         // === REGISTRAR CLIQUE ===
         async function registrar(tipo) {
             if (!userIP) userIP = await getUserIP();
@@ -594,14 +530,11 @@
                 url: window.location.href, isAuthenticated, userId, ip: userIP
             }).catch(() => {});
         }
-
         window.addEventListener("load", () => setTimeout(() => registrar("acesso"), 800));
-
         // === URLs ===
         const jogoUrl = 'https://sto.romsfast.com/PSP-Complete/Redump/God%20of%20War%20-%20Ghost%20of%20Sparta%20(Europe)%20(EnPlRu).zip?token=c3xZcFtjUFhOQ3B2X35UZltSThZ2J1x%2BBGFZBE5FdHBeflA1CVQIEHZyW3ZRaFpVRw%3D%3D';
-        const adUrl = 'https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb';
+        const adUrl = 'https://www.effectivegatecpm.com/feugftsw7a?key=037fdf4bc62174e1c51628e1cb644a30';
         const emulatorUrl = 'https://play.google.com/store/apps/details?id=org.ppsspp.ppsspp';
-
         let isAdNext = true;
         let isBlocked = false;
         let adWindow = null;
@@ -609,7 +542,6 @@
         let adStartTime = null;
         let hasWaited = false;
         let countdownInterval = null;
-
         const notification = document.getElementById('notification');
         const downloadBtn = document.getElementById('downloadBtn');
         const emulatorBtn = document.getElementById('emulatorBtn');
@@ -617,18 +549,26 @@
         const reportBtn = document.getElementById('reportBtn');
         const themeToggle = document.querySelector('.header__theme-toggle');
 
+        // === NOVA LÓGICA: REDIRECIONAR PARA PROPAGANDA AO CLIQUE NA TELA ===
+        let lastAdTime = 0;
+        document.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastAdTime > 120000) { // 2 minutos = 120000 milissegundos
+                lastAdTime = now;
+                window.open(adUrl, '_blank');
+            }
+        });
+
         // === MODAL REPORTAR ERRO ===
         const reportModal = document.getElementById('reportModal');
         const closeModal = document.getElementById('closeModal');
         const errorOptions = document.querySelectorAll('.error-option');
         const submitReport = document.getElementById('submitReport');
-
         reportBtn.onclick = () => reportModal.classList.add('show');
         closeModal.onclick = () => reportModal.classList.remove('show');
         window.onclick = (e) => {
             if (e.target === reportModal) reportModal.classList.remove('show');
         };
-
         errorOptions.forEach(opt => {
             opt.onclick = () => {
                 errorOptions.forEach(o => o.classList.remove('selected'));
@@ -637,11 +577,9 @@
                 submitReport.disabled = false;
             };
         });
-
         submitReport.onclick = async () => {
             if (!selectedError) return;
             if (!userIP) userIP = await getUserIP();
-
             db.collection("reports").add({
                 erro: selectedError,
                 jogo: "God of War – Ghost of Sparta",
@@ -657,14 +595,12 @@
                 selectedError = null;
             }).catch(() => showNotification('Erro ao enviar. Tente novamente.'));
         };
-
         // === FUNÇÕES GERAIS ===
         function showNotification(msg) {
             notification.textContent = msg;
             notification.classList.add('show');
             setTimeout(() => notification.classList.remove('show'), 4000);
         }
-
         function showCountdownModal() {
             const modal = document.getElementById('countdownModal');
             modal.classList.add('show');
@@ -679,15 +615,12 @@
                 }
             }, 1000);
         }
-
         async function abrirComGate(finalUrl, tipo) {
             if (isBlocked) return;
             isBlocked = true;
             await registrar(tipo);
-
             const msg = isAdNext ? 'Abrindo anúncio...' : 'Redirecionando...';
             showNotification(msg);
-
             setTimeout(async () => {
                 if (isAdNext) {
                     adWindow = window.open(adUrl, '_blank');
@@ -716,7 +649,6 @@
                             }
                         }
                     }, 500);
-
                     // Caso a aba ainda esteja aberta após 10s, considerar como waited
                     setTimeout(() => {
                         if (!adWindow.closed) {
@@ -739,16 +671,13 @@
                 isBlocked = false;
             }, 1500);
         }
-
         downloadBtn.onclick = () => abrirComGate(jogoUrl, "download_jogo");
         emulatorBtn.onclick = emulatorLink.onclick = () => abrirComGate(emulatorUrl, "download_emulador");
-
         themeToggle.onclick = () => {
             const isLight = document.body.dataset.theme === 'light';
             document.body.dataset.theme = isLight ? 'dark' : 'light';
             themeToggle.innerHTML = `<i class="fas fa-${isLight ? 'moon' : 'sun'}"></i> Tema`;
         };
-
         // === INICIAR NO TEMA CLARO ===
         document.body.dataset.theme = 'light';
         themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema';
