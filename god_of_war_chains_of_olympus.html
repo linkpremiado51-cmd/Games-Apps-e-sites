@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>God of War – Chains of Olympus</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --background: #f3f4f6;
+            --surface: rgba(0, 0, 0, 0.05);
+            --border: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --blur-effect: blur(12px);
+            --transition: all 0.6s ease-in-out;
+            --highlight-color: #d32f2f;
+            --highlight-hover: #b91c1c;
+            --episodes-color: #2563eb;
+            --episodes-hover: #1d4ed8;
+            --report-error-color: #7c3aed;
+            --report-error-hover: #6d28d9;
+            --spacing-sm: 12px;
+            --spacing-md: 20px;
+            --spacing-section: 40px;
+            --font-size-xs: clamp(0.65rem, 1.5vw, 0.75rem);
+            --font-size-sm: clamp(0.8rem, 2vw, 0.9rem);
+            --font-size-md: clamp(1rem, 2.5vw, 1.1rem);
+            --font-size-lg: clamp(1.2rem, 3vw, 1.5rem);
+        }
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #b8c0d0;
+            --background: #070b17;
+            --surface: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow-color: rgba(0, 0, 0, 0.6);
+            --highlight-color: #ef4444;
+            --highlight-hover: #dc2626;
+            --episodes-color: #60a5fa;
+            --episodes-hover: #3b82f6;
+            --report-error-color: #a78bfa;
+            --report-error-hover: #8b5cf6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            font-family: 'Jura', sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 60px;
+            overflow-x: hidden;
+            touch-action: pan-y;
+            transition: background 0.3s ease, color 0.3s ease;
+            overscroll-behavior-x: none;
+            scroll-behavior: smooth;
+        }
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: var(--blur-effect);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--spacing-md);
+            z-index: 1001;
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+        [data-theme="dark"] .header {
+            background: rgba(18, 21, 32, 0.9);
+        }
+        .header__title {
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            color: var(--highlight-color);
+            text-shadow: 0 0 5px rgba(211, 47, 47, 0.3);
+        }
+        .header__nav { display: flex; gap: var(--spacing-sm); }
+        .header__theme-toggle {
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-primary);
+            background: none;
+            border: 1px solid var(--border);
+        }
+        .main-container {
+            max-width: 800px;
+            width: 95%;
+            margin: var(--spacing-section) auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .game-image {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 30px var(--shadow-color);
+        }
+        .game-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .info-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid var(--border);
+        }
+        .title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--highlight-color);
+        }
+        .episode {
+            font-size: var(--font-size-md);
+            color: var(--text-secondary);
+        }
+        .duration {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            display: block;
+        }
+        .synopsis {
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 15px 0 25px;
+        }
+        .spec {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-left: 3px solid var(--highlight-color);
+            font-size: 0.9em;
+        }
+        [data-theme="dark"] .spec {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .spec-label {
+            font-size: 0.75em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        [data-theme="dark"] .spec-label { color: #888; }
+        .spec-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .spec-value a {
+            color: var(--episodes-color);
+            text-decoration: none;
+        }
+        .spec-value a:hover { text-decoration: underline; }
+        .actions {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .action-button {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: transform 0.2s ease, background 0.2s ease;
+            min-width: 140px;
+            text-align: center;
+            color: #fff;
+            border-radius: 8px;
+        }
+        .action-button.download { background: #1f2937; }
+        .action-button.download:hover { background: #111827; transform: scale(1.05); }
+        .action-button.emulator { background: var(--episodes-color); }
+        .action-button.emulator:hover { background: var(--episodes-hover); transform: scale(1.05); }
+        .action-button.report-error { background: var(--report-error-color); }
+        .action-button.report-error:hover { background: var(--report-error-hover); transform: scale(1.05); }
+        .ad-alert {
+            background: rgba(251, 191, 36, 0.15);
+            border-left: 3px solid #f59e0b;
+            padding: 16px 20px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            color: var(--text-primary);
+        }
+        .ad-alert strong { color: #d97706; }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.9em;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border);
+        }
+        .stat-item { text-align: center; min-width: 100px; }
+        .stat-number {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--highlight-color);
+            display: block;
+        }
+        .stat-label {
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-size: 0.85em;
+        }
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 30px;
+            background: rgba(31, 41, 55, 0.95);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2000;
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            text-align: center;
+            border-radius: 8px;
+            max-width: 90%;
+            pointer-events: none;
+        }
+        .notification.show { opacity: 1; }
+        .trailer-full {
+            width: 100%;
+            margin: 30px 0;
+            padding: 0 var(--spacing-md);
+        }
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            overflow: hidden;
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        @media (max-width: 768px) {
+            .action-button { min-width: 120px; font-size: var(--font-size-xs); padding: 8px 15px; }
+            .specs-grid { grid-template-columns: 1fr; }
+            .game-image { max-width: 300px; }
+            .trailer-full { padding: 0 10px; }
+        }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px var(--shadow-color);
+            border: 1px solid var(--border);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .modal-title {
+            font-size: var(--font-size-lg);
+            color: var(--highlight-color);
+            font-weight: 700;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .error-option {
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+        [data-theme="dark"] .error-option {
+            background: rgba(255,255,255,0.1);
+        }
+        .error-option:hover {
+            background: var(--episodes-color);
+            color: white;
+            transform: translateX(5px);
+        }
+        .error-option.selected {
+            background: var(--highlight-color);
+            color: white;
+            border-color: var(--highlight-color);
+        }
+        .submit-report {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: var(--highlight-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .submit-report:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #countdown {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--highlight-color);
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <header class="header">
+        <div class="header__title">God of War</div>
+        <nav class="header__nav">
+            <button class="header__theme-toggle" aria-label="Alternar tema">
+                <i class="fas fa-sun"></i> Tema
+            </button>
+        </nav>
+    </header>
+    <div class="main-container">
+        <!-- IMAGEM PRINCIPAL -->
+        <div class="game-image">
+            <img src="https://i.postimg.cc/vZ1J77mT/God-of-War-Chains-of-Olympus-1.jpg" alt="God of War – Chains of Olympus">
+        </div>
+        <!-- INFORMAÇÕES + BOTÕES -->
+        <div class="info-card">
+            <div class="title">Deus da Guerra – Correntes do Olimpo</div>
+            <div class="episode">Tela Principal</div>
+            <div class="duration">Plataforma: PSP (Baixar Emulador)</div>
+            <div class="ad-alert">
+                <strong>Aviso:</strong> Um anúncio será exibido antes do download. Espere 10 segundos na página do anúncio antes de voltar para a tela do jogo para baixar.
+            </div>
+            <div class="actions">
+                <button class="action-button download" id="downloadBtn">
+                    <i class="fas fa-download"></i> Baixar Jogo (1,11 GB)
+                </button>
+                <button class="action-button emulator" id="emulatorBtn">
+                    <i class="fas fa-gamepad"></i> Baixar Emulador
+                </button>
+                <button class="action-button report-error" id="reportBtn">
+                    <i class="fas fa-bug"></i> Reportar Erro
+                </button>
+            </div>
+        </div>
+        <!-- TRAILER DO YOUTUBE -->
+        <div class="trailer-full">
+            <div class="video-wrapper">
+                <iframe
+                    src="https://www.youtube.com/embed/IA-VsrdHmdA?si=Qi_KJADQXUjakset"
+                    title="God of War: Chains of Olympus Trailer"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+        <!-- ESPECIFICAÇÕES -->
+        <div class="info-card">
+            <div class="specs-grid">
+                <div class="spec"><div class="spec-label">Plataforma</div><div class="spec-value">PSP (<a href="#" id="emulatorLink">Emulador</a>)</div></div>
+                <div class="spec"><div class="spec-label">Editora</div><div class="spec-value">WW: Sony Computer Entertainment / JP: Capcom</div></div>
+                <div class="spec"><div class="spec-label">Gênero</div><div class="spec-value">Interpretação de papéis</div></div>
+                <div class="spec"><div class="spec-label">Região</div><div class="spec-value">Ásia, UE, Japão, Coreia do Sul, EUA</div></div>
+            </div>
+            <h2>Sinopse</h2>
+            <p>No terceiro jogo da série God of War, Kratos estreou em um console portátil pela primeira vez. Chains of Olympus, uma prequela do primeiro God of War, se passa dez anos antes dos eventos daquele jogo. A jogabilidade é muito semelhante à dos seus antecessores, mas com alguns ajustes aqui e ali. Conforme Kratos avança pelas fases, ele precisa derrotar inimigos e chefes, resolver quebra-cabeças com caixas e participar de eventos de tempo rápido. Além disso, ele coleta orbes vermelhas para fortalecer suas armas e habilidades, olhos de górgona para melhorar sua saúde e penas de fênix para aumentar seu poder mágico.</p>
+            <p>Os controles do jogo tiveram que ser modificados para se adequarem ao número reduzido de botões disponíveis no PSP. Agora é necessário usar o joystick analógico além dos botões de ombro para evitar travamentos. As Lâminas do Caos, indiscutivelmente a arma mais icônica da série God of War, também estão incluídas. Diversackages novas armas e magias, como a Luz da Aurora, o Escudo Solar e o Efreet, podem ser utilizadas. O jogo começa quando os deuses enviam Kratos à Ática para protegê-la do exército persa invasor. Contudo, quando Morpheus lança seu ataque, Kratos precisa reunir suas forças para defender o mundo mais uma vez.</p>
+        </div>
+        <!-- ESTATÍSTICAS -->
+        <div class="stats">
+            <div class="stat-item"><div class="stat-number">161.458</div><div class="stat-label">Visualizações</div></div>
+            <div class="stat-item"><div class="stat-number">92.092</div><div class="stat-label">Downloads</div></div>
+            <div class="stat-item"><div class="stat-number">04/03/2008</div><div class="stat-label">Lançamento</div></div>
+            <div class="stat-item"><div class="stat-number">4,2/5</div><div class="stat-label">Avaliação (104 votos)</div></div>
+        </div>
+    </div>
+    <!-- MODAL REPORTAR ERRO -->
+    <div class="modal" id="reportModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Reportar Erro</div>
+                <button class="close-modal" id="closeModal">×</button>
+            </div>
+            <p>Selecione o problema que você encontrou:</p>
+            <div class="error-option" data-error="Link do jogo quebrado">Link do jogo quebrado</div>
+            <div class="error-option" data-error="Emulador não funciona">Emulador não funciona</div>
+            <div class="error-option" data-error="Jogo trava ou buga">Jogo trava ou buga</div>
+            <button class="submit-report" id="submitReport" disabled>Enviar Relatório</button>
+        </div>
+    </div>
+    <!-- MODAL CONTADOR -->
+    <div class="modal" id="countdownModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Aguardando Anúncio</div>
+            </div>
+            <p>Por favor, espere 10 segundos na página do anúncio.</p>
+            <div id="countdown">10</div>
+        </div>
+    </div>
+    <div class="notification" id="notification"></div>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script>
+        // === CONFIGURAÇÃO FIREBASE ===
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9vB_annutvZByThKrsPJbsP9VZ7gyWB0",
+            authDomain: "sorteio-mega-sorte.firebaseapp.com",
+            projectId: "sorteio-mega-sorte",
+            storageBucket: "sorteio-mega-sorte.appspot.com",
+            messagingSenderId: "776750928407",
+            appId: "1:776750928407:web:72da06debB97302b5c252"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let isAuthenticated = false;
+        let userId = null;
+        let userIP = null;
+        let selectedError = null;
+        auth.onAuthStateChanged(user => {
+            isAuthenticated = !!user;
+            userId = user ? user.uid : "anônimo";
+        });
+        // === BUSCAR IP ===
+        async function getUserIP() {
+            const apis = ['https://ipapi.co/json/', 'https://api.ipify.org?format=json', 'https://ipinfo.io/json'];
+            for (const url of apis) {
+                try {
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 3000);
+                    const res = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    return data.ip || 'Desconhecido';
+                } catch (err) { continue; }
+            }
+            return 'Desconhecido';
+        }
+        // === REGISTRAR CLIQUE ===
+        async function registrar(tipo) {
+            if (!userIP) userIP = await getUserIP();
+            db.collection("cliques").add({
+                tipo, jogo: "God of War – Chains of Olympus", timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent, referrer: document.referrer || "direto",
+                url: window.location.href, isAuthenticated, userId, ip: userIP
+            }).catch(() => {});
+        }
+        window.addEventListener("load", () => setTimeout(() => registrar("acesso"), 800));
+        // === URLs ===
+        const jogoUrl = 'https://sto.romsfast.com/PSP-Complete/Redump/God%20of%20War%20-%20Chains%20of%20Olympus%20(USA).zip?token=c3xZcFtjUFhOQ3B2X35UZltSThN5fF9%2BAmdSWRcVJ34PclNiFFBDF3N2XXFWZVg%3D';
+        const adUrl = 'https://www.effectivegatecpm.com/feugftsw7a?key=037fdf4bc62174e1c51628e1cb644a30';
+        const emulatorUrl = 'https://play.google.com/store/apps/details?id=org.ppsspp.ppsspp';
+        let isAdNext = true;
+        let isBlocked = false;
+        let adWindow = null;
+        let adTimer = null;
+        let adStartTime = null;
+        let hasWaited = false;
+        let countdownInterval = null;
+        const notification = document.getElementById('notification');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const emulatorBtn = document.getElementById('emulatorBtn');
+        const emulatorLink = document.getElementById('emulatorLink');
+        const reportBtn = document.getElementById('reportBtn');
+        const themeToggle = document.querySelector('.header__theme-toggle');
+
+        // === CLIQUE NA TELA PARA ANÚNCIO ===
+        let lastAdTime = 0;
+        document.addEventListener('click', () => {
+            const now = Date.now();
+            if (now - lastAdTime > 120000) {
+                lastAdTime = now;
+                window.open(adUrl, '_blank');
+            }
+        });
+
+        // === MODAL REPORTAR ERRO ===
+        const reportModal = document.getElementById('reportModal');
+        const closeModal = document.getElementById('closeModal');
+        const errorOptions = document.querySelectorAll('.error-option');
+        const submitReport = document.getElementById('submitReport');
+        reportBtn.onclick = () => reportModal.classList.add('show');
+        closeModal.onclick = () => reportModal.classList.remove('show');
+        window.onclick = (e) => {
+            if (e.target === reportModal) reportModal.classList.remove('show');
+        };
+        errorOptions.forEach(opt => {
+            opt.onclick = () => {
+                errorOptions.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedError = opt.dataset.error;
+                submitReport.disabled = false;
+            };
+        });
+        submitReport.onclick = async () => {
+            if (!selectedError) return;
+            if (!userIP) userIP = await getUserIP();
+            db.collection("reports").add({
+                erro: selectedError,
+                jogo: "God of War – Chains of Olympus",
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                ip: userIP,
+                userId: userId || "anônimo"
+            }).then(() => {
+                showNotification('Relatório enviado! Obrigado.');
+                reportModal.classList.remove('show');
+                errorOptions.forEach(o => o.classList.remove('selected'));
+                submitReport.disabled = true;
+                selectedError = null;
+            }).catch(() => showNotification('Erro ao enviar. Tente novamente.'));
+        };
+        // === FUNÇÕES GERAIS ===
+        function showNotification(msg) {
+            notification.textContent = msg;
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 4000);
+        }
+        function showCountdownModal() {
+            const modal = document.getElementById('countdownModal');
+            modal.classList.add('show');
+            let seconds = 10;
+            document.getElementById('countdown').textContent = seconds;
+            countdownInterval = setInterval(() => {
+                seconds--;
+                document.getElementById('countdown').textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    modal.classList.remove('show');
+                }
+            }, 1000);
+        }
+        async function abrirComGate(finalUrl, tipo) {
+            if (isBlocked) return;
+            isBlocked = true;
+            await registrar(tipo);
+            const msg = isAdNext ? 'Abrindo anúncio...' : 'Redirecionando...';
+            showNotification(msg);
+            setTimeout(async () => {
+                if (isAdNext) {
+                    adWindow = window.open(adUrl, '_blank');
+                    if (!adWindow) {
+                        showNotification('Pop-up bloqueado! Ative pop-ups.');
+                        isBlocked = false;
+                        return;
+                    }
+                    adStartTime = Date.now();
+                    hasWaited = false;
+                    showCountdownModal();
+                    adTimer = setInterval(() => {
+                        if (adWindow.closed) {
+                            clearInterval(adTimer);
+                            clearInterval(countdownInterval);
+                            document.getElementById('countdownModal').classList.remove('show');
+                            let timeSpent = Date.now() - adStartTime;
+                            if (timeSpent >= 10000) {
+                                hasWaited = true;
+                                isAdNext = false;
+                                showNotification('Obrigado por esperar 10 segundos! Clique novamente para baixar.');
+                            } else {
+                                hasWaited = false;
+                                showNotification('Você saiu da propaganda sem concluir os 10 segundos. Por favor, repita a ação e aguarde 10 segundos.');
+                                isAdNext = true;
+                            }
+                        }
+                    }, 500);
+                    setTimeout(() => {
+                        if (!adWindow.closed) {
+                            hasWaited = true;
+                            isAdNext = false;
+                            showNotification('Tempo mínimo atingido. Feche o anúncio e clique novamente para baixar.');
+                        }
+                    }, 10000);
+                } else {
+                    if (!hasWaited) {
+                        showNotification('Você não esperou os 10 segundos no anúncio anterior. Por favor, repita o processo e aguarde 10 segundos.');
+                        isAdNext = true;
+                        isBlocked = false;
+                        return;
+                    }
+                    window.open(finalUrl, '_blank');
+                    hasWaited = false;
+                    isAdNext = true;
+                }
+                isBlocked = false;
+            }, 1500);
+        }
+        downloadBtn.onclick = () => abrirComGate(jogoUrl, "download_jogo");
+        emulatorBtn.onclick = emulatorLink.onclick = () => abrirComGate(emulatorUrl, "download_emulador");
+        themeToggle.onclick = () => {
+            const isLight = document.body.dataset.theme === 'light';
+            document.body.dataset.theme = isLight ? 'dark' : 'light';
+            themeToggle.innerHTML = `<i class="fas fa-${isLight ? 'moon' : 'sun'}"></i> Tema`;
+        };
+        // === INICIAR NO TEMA CLARO ===
+        document.body.dataset.theme = 'light';
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema';
+    </script>
+</body>
+</html>
