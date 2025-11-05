@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Death Note</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --background: #f3f4f6;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --highlight-color: #d32f2f;
+            --highlight-hover: #b91c1c;
+            --episodes-color: #2563eb;
+            --episodes-hover: #1d4ed8;
+            --watched-bg: rgba(34, 197, 94, 0.15);
+            --spacing-sm: 12px;
+            --spacing-md: 20px;
+            --spacing-section: 40px;
+            --font-size-xs: clamp(0.65rem, 1.5vw, 0.75rem);
+            --font-size-sm: clamp(0.8rem, 2vw, 0.9rem);
+            --font-size-md: clamp(1rem, 2.5vw, 1.1rem);
+            --font-size-lg: clamp(1.2rem, 3vw, 1.5rem);
+        }
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #b8c0d0;
+            --background: #070b17;
+            --surface: #111827;
+            --border: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+            --highlight-color: #ef4444;
+            --highlight-hover: #dc2626;
+            --episodes-color: #60a5fa;
+            --episodes-hover: #3b82f6;
+            --watched-bg: rgba(74, 222, 128, 0.2);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body {
+            font-family: 'Jura', sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 60px;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+            scroll-behavior: smooth;
+        }
+        .header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--spacing-md);
+            z-index: 1001;
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+        .header__title {
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 700;
+            font-size: var(--font-size-lg);
+            color: var(--highlight-color);
+        }
+        .header__theme-toggle {
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 500;
+            font-size: var(--font-size-sm);
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-primary);
+            background: none;
+        }
+        .main-container {
+            max-width: 900px;
+            width: 95%;
+            margin: var(--spacing-section) auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .anime-image {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 6px 30px var(--shadow-color);
+        }
+        .anime-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .info-card {
+            background: var(--surface);
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid var(--border);
+        }
+        .title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--highlight-color);
+        }
+        .ad-alert {
+            background: rgba(251, 191, 36, 0.15);
+            border-left: 3px solid #f59e0b;
+            padding: 16px 20px;
+            font-size: 0.95em;
+            color: var(--text-primary);
+        }
+        .ad-alert strong { color: #d97706; }
+        .video-full {
+            width: 100%;
+            margin: 30px 0;
+            padding: 0 var(--spacing-md);
+        }
+        .video-container {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            box-shadow: 0 6px 30px var(--shadow-color);
+            background: #000;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 20px;
+        }
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .video-placeholder i {
+            font-size: 3rem;
+            color: #9ca3af;
+        }
+        .synopsis {
+            background: var(--surface);
+            padding: 16px 20px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            border-left: 4px solid var(--highlight-color);
+            margin-top: 10px;
+        }
+        .episodes-list {
+            background: var(--surface);
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            border: 1px solid var(--border);
+        }
+        .episodes-title {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--highlight-color);
+            margin-bottom: 15px;
+        }
+        .episode-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.03);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            gap: 10px;
+        }
+        [data-theme="dark"] .episode-item {
+            background: rgba(255,255,255,0.05);
+        }
+        .episode-item:hover {
+            background: var(--episodes-color);
+            color: white;
+            transform: translateX(5px);
+        }
+        .episode-item.active {
+            background: var(--episodes-color);
+            color: white;
+        }
+        .episode-item.watched {
+            background: var(--watched-bg) !important;
+            border-left: 4px solid #22c55e;
+        }
+        .episode-thumb {
+            width: 80px;
+            height: 45px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .episode-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .episode-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .episode-number {
+            font-weight: 700;
+            color: inherit;
+            font-size: 0.9rem;
+        }
+        .episode-title {
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+        .episode-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        .episode-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .ep-btn {
+            padding: 6px 10px;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .ep-btn.watch {
+            background: #1f2937;
+            color: white;
+        }
+        .ep-btn.watch:hover {
+            background: #111827;
+            transform: scale(1.05);
+        }
+        .ep-btn.download {
+            background: #059669;
+            color: white;
+        }
+        .ep-btn.download:hover {
+            background: #047857;
+            transform: scale(1.05);
+        }
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 18px 35px;
+            background: rgba(31, 41, 55, 0.98);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 2000;
+            font-size: var(--font-size-md);
+            font-weight: 500;
+            text-align: center;
+            max-width: 90%;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .notification.show { opacity: 1; }
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: var(--surface);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 12px 40px var(--shadow-color);
+            border: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-primary);
+        }
+        .modal-title {
+            font-size: var(--font-size-lg);
+            color: var(--highlight-color);
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .modal p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .modal-btn {
+            margin-top: 20px;
+            padding: 12px 20px;
+            background: var(--highlight-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .modal-btn:hover {
+            background: var(--highlight-hover);
+        }
+        #countdown {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--highlight-color);
+            text-align: center;
+            margin: 20px 0;
+        }
+        @media (max-width: 768px) {
+            .anime-image { max-width: 300px; }
+            .episode-thumb { width: 60px; height: 34px; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <header class="header">
+        <div class="header__title">Anime i Geek</div>
+        <nav class="header__nav">
+            <button class="header__theme-toggle" aria-label="Alternar tema">
+                <i class="fas fa-sun"></i> Tema
+            </button>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <div class="anime-image">
+            <img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Death Note">
+        </div>
+
+        <div class="info-card">
+            <div class="title">Death Note</div>
+            <div class="ad-alert">
+                <strong>Aviso:</strong> Um anúncio será exibido antes de assistir ou baixar. A página anime i geek não se responsabiliza pelos anúncios mostrados pelos patrocinadores.
+            </div>
+        </div>
+
+        <div class="video-full">
+            <div class="video-container">
+                <div class="video-placeholder">
+                    <i class="fas fa-code"></i> <div>Player em desenvolvimento!</div>
+                    <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 8px;">
+                        Ao clicar em ASSISTIR, você será redirecionado para uma propaganda aguarde 10 segundos caso não seja redirecionado automaticamente para o player do Google Drive saia da propaganda volte nessa pagina e clique em assistir novamente.
+                    </div>
+                </div>
+            </div>
+            <div class="synopsis">
+                <strong>Sinopse:</strong> Light Yagami, um estudante brilhante e entediado, encontra o Death Note, um caderno sobrenatural que permite matar qualquer pessoa apenas escrevendo seu nome. Decidido a criar um mundo sem criminosos, Light assume o manto de Kira, mas sua cruzada atrai a atenção de L, o maior detetive do mundo. O que se segue é um jogo de gato e rato psicológico cheio de reviravoltas, dilemas morais e batalhas de inteligência, onde cada movimento pode ser fatal.
+            </div>
+        </div>
+
+       <div class="episodes-list">
+        <div class="episodes-title">Episódios (37)</div>
+        <div class="episode-item active" data-ep="1">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 1"></div>
+            <div class="episode-info">
+                <div class="episode-number">01</div>
+                <div class="episode-title">Renascimento</div>
+                <div class="episode-size">~150MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="2">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 2"></div>
+            <div class="episode-info">
+                <div class="episode-number">02</div>
+                <div class="episode-title">Confronto</div>
+                <div class="episode-size">~172MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="3">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 3"></div>
+            <div class="episode-info">
+                <div class="episode-number">03</div>
+                <div class="episode-title">Negociação</div>
+                <div class="episode-size">~160MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="4">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 4"></div>
+            <div class="episode-info">
+                <div class="episode-number">04</div>
+                <div class="episode-title">Perseguição</div>
+                <div class="episode-size">~165MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="5">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 5"></div>
+            <div class="episode-info">
+                <div class="episode-number">05</div>
+                <div class="episode-title">Tática</div>
+                <div class="episode-size">~158MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="6">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 6"></div>
+            <div class="episode-info">
+                <div class="episode-number">06</div>
+                <div class="episode-title">Aliança</div>
+                <div class="episode-size">~170MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="7">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 7"></div>
+            <div class="episode-info">
+                <div class="episode-number">07</div>
+                <div class="episode-title">Desconfiança</div>
+                <div class="episode-size">~162MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="8">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 8"></div>
+            <div class="episode-info">
+                <div class="episode-number">08</div>
+                <div class="episode-title">Encontro</div>
+                <div class="episode-size">~168MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="9">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 9"></div>
+            <div class="episode-info">
+                <div class="episode-number">09</div>
+                <div class="episode-title">Estratégia</div>
+                <div class="episode-size">~155MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="10">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 10"></div>
+            <div class="episode-info">
+                <div class="episode-number">10</div>
+                <div class="episode-title">Revelação</div>
+                <div class="episode-size">~175MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="11">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 11"></div>
+            <div class="episode-info">
+                <div class="episode-number">11</div>
+                <div class="episode-title">Dúvida</div>
+                <div class="episode-size">~160MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="12">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 12"></div>
+            <div class="episode-info">
+                <div class="episode-number">12</div>
+                <div class="episode-title">Plano</div>
+                <div class="episode-size">~165MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="13">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 13"></div>
+            <div class="episode-info">
+                <div class="episode-number">13</div>
+                <div class="episode-title">Conflito</div>
+                <div class="episode-size">~170MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="14">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 14"></div>
+            <div class="episode-info">
+                <div class="episode-number">14</div>
+                <div class="episode-title">Decisão</div>
+                <div class="episode-size">~158MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="15">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 15"></div>
+            <div class="episode-info">
+                <div class="episode-number">15</div>
+                <div class="episode-title">Sacrifício</div>
+                <div class="episode-size">~162MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="16">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 16"></div>
+            <div class="episode-info">
+                <div class="episode-number">16</div>
+                <div class="episode-title">Traição</div>
+                <div class="episode-size">~168MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="17">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 17"></div>
+            <div class="episode-info">
+                <div class="episode-number">17</div>
+                <div class="episode-title">Vingança</div>
+                <div class="episode-size">~175MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="18">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 18"></div>
+            <div class="episode-info">
+                <div class="episode-number">18</div>
+                <div class="episode-title">Descoberta</div>
+                <div class="episode-size">~160MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="19">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 19"></div>
+            <div class="episode-info">
+                <div class="episode-number">19</div>
+                <div class="episode-title">Ameaça</div>
+                <div class="episode-size">~165MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="20">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 20"></div>
+            <div class="episode-info">
+                <div class="episode-number">20</div>
+                <div class="episode-title">Confrontação</div>
+                <div class="episode-size">~170MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="21">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 21"></div>
+            <div class="episode-info">
+                <div class="episode-number">21</div>
+                <div class="episode-title">Mudança</div>
+                <div class="episode-size">~158MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="22">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 22"></div>
+            <div class="episode-info">
+                <div class="episode-number">22</div>
+                <div class="episode-title">Perigo</div>
+                <div class="episode-size">~162MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="23">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 23"></div>
+            <div class="episode-info">
+                <div class="episode-number">23</div>
+                <div class="episode-title">Escolha</div>
+                <div class="episode-size">~168MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="24">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 24"></div>
+            <div class="episode-info">
+                <div class="episode-number">24</div>
+                <div class="episode-title">Armadilha</div>
+                <div class="episode-size">~175MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="25">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 25"></div>
+            <div class="episode-info">
+                <div class="episode-number">25</div>
+                <div class="episode-title">Segredo</div>
+                <div class="episode-size">~160MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="26">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 26"></div>
+            <div class="episode-info">
+                <div class="episode-number">26</div>
+                <div class="episode-title">Desafio</div>
+                <div class="episode-size">~165MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="27">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 27"></div>
+            <div class="episode-info">
+                <div class="episode-number">27</div>
+                <div class="episode-title">Reviravolta</div>
+                <div class="episode-size">~170MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="28">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 28"></div>
+            <div class="episode-info">
+                <div class="episode-number">28</div>
+                <div class="episode-title">Fuga</div>
+                <div class="episode-size">~158MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="29">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 29"></div>
+            <div class="episode-info">
+                <div class="episode-number">29</div>
+                <div class="episode-title">Alvo</div>
+                <div class="episode-size">~162MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="30">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 30"></div>
+            <div class="episode-info">
+                <div class="episode-number">30</div>
+                <div class="episode-title">Missão</div>
+                <div class="episode-size">~168MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="31">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 31"></div>
+            <div class="episode-info">
+                <div class="episode-number">31</div>
+                <div class="episode-title">Plano Final</div>
+                <div class="episode-size">~175MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="32">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 32"></div>
+            <div class="episode-info">
+                <div class="episode-number">32</div>
+                <div class="episode-title">Ataque</div>
+                <div class="episode-size">~160MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="33">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 33"></div>
+            <div class="episode-info">
+                <div class="episode-number">33</div>
+                <div class="episode-title">Despedida</div>
+                <div class="episode-size">~165MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="34">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 34"></div>
+            <div class="episode-info">
+                <div class="episode-number">34</div>
+                <div class="episode-title">Justiça</div>
+                <div class="episode-size">~170MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="35">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 35"></div>
+            <div class="episode-info">
+                <div class="episode-number">35</div>
+                <div class="episode-title">Fim</div>
+                <div class="episode-size">~158MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="36">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 36"></div>
+            <div class="episode-info">
+                <div class="episode-number">36</div>
+                <div class="episode-title">Legado</div>
+                <div class="episode-size">~162MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+        <div class="episode-item" data-ep="37">
+            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 37"></div>
+            <div class="episode-info">
+                <div class="episode-number">37</div>
+                <div class="episode-title">Novo Mundo</div>
+                <div class="episode-size">~168MB (SD)</div>
+            </div>
+            <div class="episode-actions">
+                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
+                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="countdownModal">
+        <div class="modal-content">
+            <div class="modal-title">Aguardando Anúncio</div>
+            <p>Por favor, espere 10 segundos na página do anúncio.</p>
+            <div id="countdown">10</div>
+        </div>
+    </div>
+
+    <div class="modal" id="redownloadModal">
+        <div class="modal-content">
+            <div class="modal-title">Download já iniciado</div>
+            <p>O download desse arquivo já foi feito.</p>
+            <p>Deseja baixar novamente?</p>
+            <button class="modal-btn" id="confirmRedownload">OK</button>
+            <button class="modal-btn" id="cancelRedownload" style="margin-top:10px; background:#6b7280;">Cancelar</button>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9vB_annutvZByThKrsPJbsP9VZ7gyWB0",
+            authDomain: "sorteio-mega-sorte.firebaseapp.com",
+            projectId: "sorteio-mega-sorte",
+            storageBucket: "sorteio-mega-sorte.appspot.com",
+            messagingSenderId: "776750928407",
+            appId: "1:776750928407:web:72da06debB97302b5c252"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentEpisode = 1;
+        const adUrl = 'https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb';
+        let isBlocked = false;
+        let adWindow = null;
+        let adTimer = null;
+        let adStartTime = null;
+        let hasWaited = false;
+        let countdownInterval = null;
+        let lastAdClick = parseInt(localStorage.getItem('lastAdClick') || '0');
+        let pendingDownloadEp = null;
+
+        const notification = document.getElementById('notification');
+        // const unavailableModal = document.getElementById('unavailableModal'); // Removido
+        // const closeUnavailable = document.getElementById('closeUnavailable'); // Removido
+        const redownloadModal = document.getElementById('redownloadModal');
+        const confirmRedownload = document.getElementById('confirmRedownload');
+        const cancelRedownload = document.getElementById('cancelRedownload');
+        const themeToggle = document.querySelector('.header__theme-toggle');
+
+        // NOVOS LINKS DO GOOGLE DRIVE PARA O BOTÃO "ASSISTIR"
+        const watchLinks = {
+            1: "https://drive.google.com/file/d/1tI7_aQpxp3tCXn8qPntzL6hgBjsEwS4e/view",
+            2: "https://drive.google.com/file/d/1aXWua0ueygwP5cJz1OyXFRhiVoV7VXcV/view",
+            3: "https://drive.google.com/file/d/1djjUqe3aMHmZbSB7DlzqVxfI60S-gV5h/view",
+            4: "https://drive.google.com/file/d/1jRuazHWSw0aOaZf7tX4kkPqpe75YfxD1/view",
+            5: "https://drive.google.com/file/d/1rWC17ap_w_p83__Uk2-p_EQQq9i4NdxO/view",
+            6: "https://drive.google.com/file/d/1fh7lAomYKGb4b86I0MwsefBLGAzI5yPU/view",
+            7: "https://drive.google.com/file/d/1U3XTsXfe_cVB7jt6zoZckZ5MKEpIyQjP/view",
+            8: "https://drive.google.com/file/d/1aj31lf4HAnPGgX2R0M2ERGPw7JCBB8m2/view",
+            9: "https://drive.google.com/file/d/1XlEzW5rvseBu9GsdUBH4JIvGRfixFsQP/view",
+            10: "https://drive.google.com/file/d/1O0LwCUMcTxxPlxWgDSw4nNYGlqQNewCu/view",
+            11: "https://drive.google.com/file/d/1WGuPuAMZOWa30Mvx7sGnLCxn9j8xZ4ZH/view",
+            12: "https://drive.google.com/file/d/1y1c1JXxB7L5F6kJO7x7oZyvvgDph5rg2/view",
+            13: "https://drive.google.com/file/d/15LKSnOJ7B3NaWDmVvvzrGkmmGaQoghs2/view",
+            14: "https://drive.google.com/file/d/1YeVnLi024hDMVug6IFi3hWYIYLHWWA9N/view",
+            15: "https://drive.google.com/file/d/1prGrwMkTR0e9YrjmM7tYfXz7lzy3Tlsq/view",
+            16: "https://drive.google.com/file/d/12Fv-tTxPhesWeTvbpdUybnE5mJLnWplC/view",
+            17: "https://drive.google.com/file/d/185qtfmE4yrWUXoVpfj3zHHHDisvO9jX6/view",
+            18: "https://drive.google.com/file/d/1e50Rod4XtqJo_ZjK9olR3WwBYljs9F09/view",
+            19: "https://drive.google.com/file/d/1uPoQSplhIfFiQHcnW3PTV3nx8Ov4m7Eo/view",
+            20: "https://drive.google.com/file/d/1oDud7g9NCsT66WKu4qGjLwBCot6EExX1/view",
+            21: "https://drive.google.com/file/d/154FGAFMSN-4bKZRaH_20ELW3mL6ejIZJ/view",
+            22: "https://drive.google.com/file/d/1MeX89zd_mo37_bKSXJnQMD9RQRM98qPo/view",
+            23: "https://drive.google.com/file/d/1CTb-WoVDjgN3u6ZSbzCmaMRLn4-yfhAo/view",
+            24: "https://drive.google.com/file/d/1EHW9Tu-DuoNWcQywSJJ4haiDNX7oPJqg/view",
+            25: "https://drive.google.com/file/d/1Vfr9f_SlSBGKyRGjsvLhku7VKjLsTHdA/view",
+            26: "https://drive.google.com/file/d/1jRxmCfNyEmY8tV6uqcBMRJ8ImlHWAHkp/view",
+            27: "https://drive.google.com/file/d/17LnFmasZnUE884_glD2Mo9dKfxlrBavj/view",
+            28: "https://drive.google.com/file/d/1-JMkDqRKtmfrn39fwweiERYgqmHR94ci/view",
+            29: "https://drive.google.com/file/d/1p7V67_tByPK5okr0mgeIx019FVeX_a9s/view",
+            30: "https://drive.google.com/file/d/1WblpN4nvwDuRtQbeDLTD20IYsDpme0_X/view",
+            31: "https://drive.google.com/file/d/13KcxOEZYqD1xa3RWcMkSpWCZ-Xc0qe9I/view",
+            32: "https://drive.google.com/file/d/1Sy-KniBY441POvCC90vjpsj1Mf25rweL/view",
+            33: "https://drive.google.com/file/d/1rb9q50LipKwh8mRmWLZnxUhurLRi3QQj/view",
+            34: "https://drive.google.com/file/d/1fp-UIW1isyCMLjAp8U4OTCZLYVh2qtF7/view",
+            35: "https://drive.google.com/file/d/1rWGLMsgYmiAhHoPPDFA11bGOXsDTPqID/view",
+            36: "https://drive.google.com/file/d/1xlpvQqDceyA29PFtyWKx-s9Ks79lH2_m/view",
+            37: "https://drive.google.com/file/d/1nDYqw9ZKj885gfQw8785W9fZj9QjuFki/view"
+        };
+        // LINKS DE DOWNLOAD ORIGINAIS (MANTIDOS)
+        const downloadLinks = {
+            1: "https://lightspeedst.net/s3/mp4/death-note/sd/1.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%201%20(SD)",
+            2: "https://lightspeedst.net/s3/mp4/death-note/sd/2.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%202%20(SD)",
+            3: "https://lightspeedst.net/s3/mp4/death-note/sd/3.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%203%20(SD)",
+            4: "https://lightspeedst.net/s3/mp4/death-note/sd/4.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%204%20(SD)",
+            5: "https://lightspeedst.net/s3/mp4/death-note/sd/5.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%205%20(SD)",
+            6: "https://lightspeedst.net/s3/mp4/death-note/sd/6.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%206%20(SD)",
+            7: "https://lightspeedst.net/s3/mp4/death-note/sd/7.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%207%20(SD)",
+            8: "https://lightspeedst.net/s3/mp4/death-note/sd/8.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%208%20(SD)",
+            9: "https://lightspeedst.net/s3/mp4/death-note/sd/9.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%209%20(SD)",
+            10: "https://lightspeedst.net/s3/mp4/death-note/sd/10.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2010%20(SD)",
+            11: "https://lightspeedst.net/s3/mp4/death-note/sd/11.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2011%20(SD)",
+            12: "https://lightspeedst.net/s3/mp4/death-note/sd/12.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2012%20(SD)",
+            13: "https://lightspeedst.net/s3/mp4/death-note/sd/13.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2013%20(SD)",
+            14: "https://lightspeedst.net/s3/mp4/death-note/sd/14.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2014%20(SD)",
+            15: "https://lightspeedst.net/s3/mp4/death-note/sd/15.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2015%20(SD)",
+            16: "https://lightspeedst.net/s3/mp4/death-note/sd/16.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2016%20(SD)",
+            17: "https://lightspeedst.net/s3/mp4/death-note/sd/17.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2017%20(SD)",
+            18: "https://lightspeedst.net/s3/mp4/death-note/sd/18.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2018%20(SD)",
+            19: "https://lightspeedst.net/s3/mp4/death-note/sd/19.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2019%20(SD)",
+            20: "https://lightspeedst.net/s3/mp4/death-note/sd/20.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2020%20(SD)",
+            21: "https://lightspeedst.net/s3/mp4/death-note/sd/21.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2021%20(SD)",
+            22: "https://lightspeedst.net/s3/mp4/death-note/sd/22.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2022%20(SD)",
+            23: "https://lightspeedst.net/s3/mp4/death-note/sd/23.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2023%20(SD)",
+            24: "https://lightspeedst.net/s3/mp4/death-note/sd/24.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2024%20(SD)",
+            25: "https://lightspeedst.net/s3/mp4/death-note/sd/25.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2025%20(SD)",
+            26: "https://lightspeedst.net/s3/mp4/death-note/sd/26.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2026%20(SD)",
+            27: "https://lightspeedst.net/s3/mp4/death-note/sd/27.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2027%20(SD)",
+            28: "https://lightspeedst.net/s3/mp4/death-note/sd/28.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2028%20(SD)",
+            29: "https://lightspeedst.net/s3/mp4/death-note/sd/29.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2029%20(SD)",
+            30: "https://lightspeedst.net/s3/mp4/death-note/sd/30.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2030%20(SD)",
+            31: "https://lightspeedst.net/s3/mp4/death-note/sd/31.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2031%20(SD)",
+            32: "https://lightspeedst.net/s3/mp4/death-note/sd/32.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2032%20(SD)",
+            33: "https://lightspeedst.net/s3/mp4/death-note/sd/33.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2033%20(SD)",
+            34: "https://lightspeedst.net/s3/mp4/death-note/sd/34.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2034%20(SD)",
+            35: "https://lightspeedst.net/s3/mp4/death-note/sd/35.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2035%20(SD)",
+            36: "https://lightspeedst.net/s3/mp4/death-note/sd/36.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2036%20(SD)",
+            37: "https://lightspeedst.net/s3/mp4/death-note/sd/37.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2037%20(SD)"
+        };
+
+        const watched = JSON.parse(localStorage.getItem('deathnote_watched') || '[]');
+        const downloaded = JSON.parse(localStorage.getItem('deathnote_downloaded') || '[]');
+
+        function markWatched(ep) {
+            if (!watched.includes(ep)) {
+                watched.push(ep);
+                localStorage.setItem('deathnote_watched', JSON.stringify(watched));
+                const item = document.querySelector(`[data-ep="${ep}"]`);
+                if (item) item.classList.add('watched');
+            }
+        }
+
+        function markDownloaded(ep) {
+            if (!downloaded.includes(ep)) {
+                downloaded.push(ep);
+                localStorage.setItem('deathnote_downloaded', JSON.stringify(downloaded));
+                markWatched(ep);
+            }
+        }
+
+        [...watched, ...downloaded].forEach(ep => {
+            const item = document.querySelector(`[data-ep="${ep}"]`);
+            if (item) item.classList.add('watched');
+        });
+
+        function showNotification(msg, duration = 5000) {
+            notification.textContent = msg;
+            notification.classList.add('show');
+            notification.onclick = () => notification.classList.remove('show');
+            setTimeout(() => notification.classList.remove('show'), duration);
+        }
+
+        function showCountdownModal() {
+            const modal = document.getElementById('countdownModal');
+            modal.classList.add('show');
+            let seconds = 10;
+            document.getElementById('countdown').textContent = seconds;
+            countdownInterval = setInterval(() => {
+                seconds--;
+                document.getElementById('countdown').textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    modal.classList.remove('show');
+                }
+            }, 1000);
+        }
+
+        async function abrirAnuncio(tipo, ep) {
+            if (isBlocked) return;
+            isBlocked = true;
+            showNotification('Abrindo anúncio...');
+
+            setTimeout(() => {
+                adWindow = window.open(adUrl, '_blank');
+                if (!adWindow) {
+                    showNotification('Pop-up bloqueado! Ative pop-ups.', 8000);
+                    isBlocked = false;
+                    return;
+                }
+                adStartTime = Date.now();
+                hasWaited = false;
+                showCountdownModal();
+
+                adTimer = setInterval(() => {
+                    if (adWindow.closed) {
+                        clearInterval(adTimer);
+                        clearInterval(countdownInterval);
+                        document.getElementById('countdownModal').classList.remove('show');
+                        const timeSpent = Date.now() - adStartTime;
+                        if (timeSpent >= 10000) {
+                            hasWaited = true;
+                            markWatched(ep);
+                            if (tipo === "watch") {
+                                // AÇÃO ATUALIZADA: Redireciona para o link do Google Drive
+                                const link = watchLinks[ep];
+                                if (link) {
+                                    window.location.href = link;
+                                } else {
+                                    showNotification("Link de Assistir não encontrado para o ep " + ep);
+                                }
+                            } else {
+                                const link = downloadLinks[ep];
+                                if (link) {
+                                    window.location.href = link;
+                                    markDownloaded(ep);
+                                } else {
+                                    showNotification("Link de Download não encontrado para o ep " + ep);
+                                }
+                            }
+                        } else {
+                            showNotification('Você saiu cedo. Aguarde 10s no anúncio.', 5000);
+                        }
+                        isBlocked = false;
+                    }
+                }, 500);
+
+                setTimeout(() => {
+                    if (!adWindow.closed && !hasWaited) {
+                        hasWaited = true;
+                        markWatched(ep);
+                        if (tipo === "watch") {
+                            // Redireciona mesmo se a janela estiver aberta (usuário pode estar assistindo ao anúncio em outra aba)
+                            const link = watchLinks[ep];
+                            if (link) {
+                                adWindow.location.href = link; // Tenta redirecionar a janela do anúncio
+                            } else {
+                                showNotification("Link de Assistir não encontrado para o ep " + ep);
+                            }
+                        }
+                    }
+                }, 10000);
+            }, 1500);
+        }
+
+        // EVENTO DE CLIQUE UNIFICADO
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('.ep-btn');
+            if (!btn) return;
+
+            e.stopPropagation();
+            const ep = btn.closest('.episode-item').dataset.ep;
+            const action = btn.dataset.action;
+
+            currentEpisode = ep;
+            updateActiveEpisode(ep);
+
+            if (action === 'download' && downloaded.includes(ep)) {
+                pendingDownloadEp = ep;
+                redownloadModal.classList.add('show');
+                return;
+            }
+
+            abrirAnuncio(action, ep);
+        });
+
+        // Confirma redownload
+        confirmRedownload.onclick = () => {
+            redownloadModal.classList.remove('show');
+            abrirAnuncio('download', pendingDownloadEp);
+        };
+
+        cancelRedownload.onclick = () => {
+            redownloadModal.classList.remove('show');
+            pendingDownloadEp = null;
+        };
+
+        // Anúncio a cada 10 minutos
+        document.body.addEventListener('click', (e) => {
+            if (e.target.closest('.ep-btn')) return;
+            const now = Date.now();
+            if (now - lastAdClick > 600000) {
+                lastAdClick = now;
+                localStorage.setItem('lastAdClick', now);
+                abrirAnuncio('interstitial', 0);
+            }
+        });
+
+        function updateActiveEpisode(ep) {
+            document.querySelectorAll('.episode-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.ep == ep);
+            });
+        }
+
+        // closeUnavailable.onclick = () => unavailableModal.classList.remove('show'); // Removido
+        window.onclick = e => {
+            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
+        };
+
+        themeToggle.onclick = () => {
+            const isLight = document.body.dataset.theme === 'light';
+            document.body.dataset.theme = isLight ? 'dark' : 'light';
+            themeToggle.innerHTML = `<i class="fas fa-${isLight ? 'moon' : 'sun'}"></i> Tema`;
+        };
+
+        // Inicialização
+        document.body.dataset.theme = 'light';
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema';
+        document.querySelector('[data-ep="1"]').classList.add('active');
+    </script>
+</body>
+</html>
