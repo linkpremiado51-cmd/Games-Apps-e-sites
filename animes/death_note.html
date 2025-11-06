@@ -2,45 +2,214 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death Note</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Anime I Geek">
+    <title>Anime I Geek</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script type="module">
+        // Import Firebase (modular v9+)
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
+        import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js';
+        import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
+        // Importação do Firestore para o código original
+        import { addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Config Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyA9vB_anmutvZByIhKxsPJbsP0VZ7gyWB0",
+            authDomain: "sorteio-mega-sorte.firebaseapp.com",
+            projectId: "sorteio-mega-sorte",
+            storageBucket: "sorteio-mega-sorte.firebasestorage.app",
+            messagingSenderId: "776750928407",
+            appId: "1:776750928407:web:72da06deb8b97302b5c252",
+            measurementId: "G-GDZ7D30N0G"
+        };
+
+        // Inicializar
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Função de pesquisa no Firestore
+        window.searchAnimes = async (query) => {
+            if (!query.trim()) {
+                document.getElementById('result-card').style.display = 'none';
+                return;
+            }
+
+            const results = [];
+            const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            
+            for (const letter of letters) {
+                try {
+                    const docRef = doc(db, 'pesquisa_animes', letter);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        for (const [animeKey, animeData] of Object.entries(data)) {
+                            const lowerQuery = query.toLowerCase();
+                            const lowerTitle = animeData.title ? animeData.title.toLowerCase() : '';
+                            const lowerKey = animeKey.toLowerCase();
+                            if (lowerQuery.includes('death') && lowerKey.includes('death') || 
+                                lowerTitle.includes(lowerQuery) || 
+                                lowerKey.includes(lowerQuery)) {
+                                results.push({ ...animeData, key: animeKey });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro na busca:', error);
+                }
+            }
+
+            // Para este exemplo, só um resultado (Death Note)
+            if (results.length > 0) {
+                displayResult(results[0]);
+                logEvent(analytics, 'search_anime', { anime: results[0].title });
+            } else {
+                document.getElementById('result-card').style.display = 'none';
+            }
+        };
+
+        // Exibir resultado no card
+        function displayResult(anime) {
+            const card = document.getElementById('result-card');
+            card.innerHTML = `
+                <div class="result-thumbnail">
+                    <i class="${anime.thumbnail_icon || 'fas fa-book'}"></i>
+                </div>
+                <div class="result-info">
+                    <h3>${anime.title}</h3>
+                    <p>${anime.episodes} episódios • ${anime.genres ? anime.genres.join(' • ') : ''}</p>
+                    <p>${anime.description || ''}</p>
+                    <a href="${anime.watch_url || '#'}" target="_blank" class="result-btn">Assistir Agora</a>
+                </div>
+            `;
+            card.style.display = 'flex';
+            card.classList.add('show');
+        }
+
+        // DOM Ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-input');
+            searchInput.addEventListener('input', (e) => {
+                window.searchAnimes(e.target.value);
+            });
+
+            // Resto do código (menu, tema) - igual ao anterior
+            const menuToggle = document.getElementById('menu-icon');
+            const mainMenu = document.getElementById('main-menu');
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body; // Adicionado para toggleTheme
+
+            menuToggle?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mainMenu.classList.toggle('open');
+                if (mainMenu.classList.contains('open')) {
+                    setTimeout(() => searchInput.focus(), 300);
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#main-menu') && !e.target.closest('#menu-icon')) {
+                    mainMenu.classList.remove('open');
+                }
+            });
+
+            // Função para alternar tema
+            function toggleTheme() {
+                const currentTheme = body.dataset.theme;
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                body.dataset.theme = newTheme;
+                localStorage.setItem('theme', newTheme);
+            }
+
+            themeToggle?.addEventListener('click', toggleTheme);
+            // Configura o ícone do tema ao carregar
+            function updateThemeIcon() {
+                themeToggle.innerHTML = `<i class="fas ${body.dataset.theme === 'light' ? 'fa-adjust' : 'fa-adjust'}"></i>`;
+            }
+            // Adiciona listener para a mudança do atributo data-theme
+            new MutationObserver(updateThemeIcon).observe(body, { attributes: true, attributeFilter: ['data-theme'] });
+            
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.dataset.theme = savedTheme;
+            updateThemeIcon(); // Chama para garantir o ícone correto no início
+        });
+    </script>
     <style>
+        /* ESTILOS ORIGINAIS DO CARROSSEL, ADAPTADOS PARA O NOVO TEMA */
+        html {
+            scroll-behavior: smooth;
+        }
+
         :root {
-            --text-primary: #1f2937;
-            --text-secondary: #4b5563;
-            --background: #f3f4f6;
-            --surface: #ffffff;
-            --border: #e5e7eb;
-            --shadow-color: rgba(0, 0, 0, 0.1);
-            --highlight-color: #d32f2f;
-            --highlight-hover: #b91c1c;
-            --episodes-color: #2563eb;
-            --episodes-hover: #1d4ed8;
-            --watched-bg: rgba(34, 197, 94, 0.15);
+            /* MUDANÇA: Cores Executivas - Adaptadas para o novo cabeçalho (Base do light mode) */
+            --primary-gradient: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); /* Deep Blue */
+            --text-primary: #1a202c;
+            --text-secondary: #4a5568;
+            --background: #f5f7fa; /* Novo fundo light */
+            --surface: rgba(0, 0, 0, 0.05); /* Superfície clara */
+            --border: rgba(0, 0, 0, 0.1);
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --blur-effect: blur(12px);
+            --transition: all 0.6s ease-in-out;
+            --highlight-color: #E53E3E; /* Red para Watch Now/Highlights */
+            --highlight-hover: #C53030;
+            --watch-later-color: #38A169; 
+            --watch-later-hover: #2F855A; 
+            --episodes-color: #2D3748; /* Cor principal do novo tema */
+            --episodes-hover: #4A5568;
+            --report-error-color: #4B5563; 
+            --report-error-hover: #6B7280;
+            --menu-background: rgba(255, 255, 255, 0.65);
+            --menu-item-background: rgba(0, 0, 0, 0.05);
+            --menu-item-hover-background: rgba(0, 0, 0, 0.1);
             --spacing-sm: 12px;
             --spacing-md: 20px;
             --spacing-section: 40px;
-            --font-size-xs: clamp(0.65rem, 1.5vw, 0.75rem);
-            --font-size-sm: clamp(0.8rem, 2vw, 0.9rem);
-            --font-size-md: clamp(1rem, 2.5vw, 1.1rem);
-            --font-size-lg: clamp(1.2rem, 3vw, 1.5rem);
+            --font-size-xs: clamp(0.8rem, 2vw, 1rem);
+            --font-size-sm: clamp(1rem, 2.5vw, 1.1rem);
+            --font-size-md: clamp(1.1rem, 3vw, 1.3rem);
+            --font-size-lg: clamp(1.4rem, 4vw, 1.8rem);
+
+            /* NOVAS VARIÁVEIS DO NOVO CABEÇALHO */
+            --primary: #2d3748;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --menu-bg-light: rgba(255, 255, 255, 0.5);
+            --menu-bg-dark: rgba(45, 55, 72, 0.5);
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
+
         [data-theme="dark"] {
-            --text-primary: #f9fafb;
-            --text-secondary: #b8c0d0;
-            --background: #070b17;
-            --surface: #111827;
-            --border: #374151;
-            --shadow-color: rgba(0, 0, 0, 0.6);
-            --highlight-color: #ef4444;
-            --highlight-hover: #dc2626;
-            --episodes-color: #60a5fa;
-            --episodes-hover: #3b82f6;
-            --watched-bg: rgba(74, 222, 128, 0.2);
+            /* Adaptado do tema Dark do novo cabeçalho */
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --background: #1a202c; /* Novo fundo dark */
+            --surface: rgba(255, 255, 255, 0.05);
+            --border: #4a5568;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --menu-background: rgba(45, 55, 72, 0.65);
+            --menu-item-background: rgba(255, 255, 255, 0.05);
+            --menu-item-hover-background: rgba(255, 255, 255, 0.1);
+            --card-bg: #374151;
+            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
             font-family: 'Jura', sans-serif;
             font-weight: 400;
@@ -51,1104 +220,1504 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 60px;
+            padding-top: 65px; /* Ajustado para a altura do novo header */
             overflow-x: hidden;
+            touch-action: pan-y;
             transition: background 0.3s ease, color 0.3s ease;
+            overscroll-behavior-x: none;
             scroll-behavior: smooth;
         }
-        .header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: 60px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 var(--spacing-md);
-            z-index: 1001;
-            box-shadow: 0 2px 10px var(--shadow-color);
-        }
-        .header__title {
-            font-family: 'Ubuntu', sans-serif;
-            font-weight: 700;
-            font-size: var(--font-size-lg);
-            color: var(--highlight-color);
-        }
-        .header__theme-toggle {
-            font-family: 'Ubuntu', sans-serif;
-            font-weight: 500;
-            font-size: var(--font-size-sm);
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-primary);
-            background: none;
-        }
-        .main-container {
-            max-width: 900px;
+
+        /* NOVOS ESTILOS DO CABEÇALHO */
+        .header-menu { width: 100%; }
+        .header { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 1001; box-shadow: var(--shadow); }
+        .header h1 { font-size: 1.125rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); }
+        .top-bar__section { display: flex; align-items: center; gap: 12px; }
+        .top-bar__icon { color: var(--text-primary); background: none; border: none; padding: 8px; cursor: pointer; transition: background 0.2s; border-radius: 4px; }
+        .top-bar__icon i { font-size: 1.125rem; }
+        .top-bar__icon:hover { background: var(--primary); color: white; }
+        .menu { position: fixed; top: 65px; left: 0; right: 0; width: 100%; height: 50vh; background: var(--menu-bg-light); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateY(-100%); transition: transform 0.4s ease; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; opacity: 0; pointer-events: none; }
+        [data-theme="dark"] .menu { background: var(--menu-bg-dark); }
+        .menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        .search-container { width: 100%; max-width: 600px; position: relative; margin-bottom: 16px; }
+        .search-input { width: 100%; padding: 14px 50px 14px 16px; font-size: 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary); outline: none; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1); }
+        .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; pointer-events: none; }
+        .result-card { width: 100%; max-width: 600px; background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); display: none; flex-direction: column; gap: 12px; opacity: 0; transform: translateY(-10px); transition: all 0.4s ease; margin-top: 8px; }
+        .result-card.show { opacity: 1; transform: translateY(0); display: flex; }
+        .result-thumbnail { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--episodes-hover)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: bold; align-self: center; }
+        .result-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+        .result-info p { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px; }
+        .result-btn { background: var(--highlight-color); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s; text-decoration: none; display: inline-block; text-align: center; }
+        .result-btn:hover { background: var(--highlight-hover); }
+        @media (max-width: 768px) { .search-input { padding: 12px 45px 12px 14px; font-size: 0.95rem; } .result-card { padding: 16px; gap: 10px; } .result-thumbnail { width: 60px; height: 60px; font-size: 1.4rem; } .result-info h3 { font-size: 1rem; } body { padding-top: 55px; } .menu { top: 55px; } }
+        /* FIM NOVOS ESTILOS DO CABEÇALHO */
+
+        /* CONTINUAÇÃO DOS ESTILOS ORIGINAIS DO CARROSSEL */
+        .slideshow-container {
+            max-width: 800px;
             width: 95%;
-            margin: var(--spacing-section) auto 0;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        .anime-image {
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+            margin: var(--spacing-section) auto;
+            position: relative;
             overflow: hidden;
+            padding: 12px;
+            background: var(--surface); /* Adaptado */
             box-shadow: 0 6px 30px var(--shadow-color);
+            z-index: 10;
         }
-        .anime-image img {
-            width: 100%;
-            height: auto;
-            display: block;
+
+        .info-carousel-container {
+            max-width: 800px;
+            width: 95%;
+            margin: var(--spacing-section) auto;
+            padding: 17px;
+            background: var(--surface); /* Adaptado */
+            box-shadow: 0 6px 30px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
         }
-        .info-card {
-            background: var(--surface);
-            padding: 20px;
-            box-shadow: 0 4px 20px var(--shadow-color);
+
+        /* ... outros estilos originais (info-slides-wrapper, slide, actions, action-button, etc.) ... */
+
+        .info-slides-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            border: 1px solid var(--border);
+            align-items: center;
         }
-        .title {
-            font-size: var(--font-size-lg);
-            font-weight: 700;
-            color: var(--highlight-color);
+
+        .info-slide {
+            display: none;
+            width: 100%;
+            transition: opacity 0.6s ease-in-out;
         }
-        .ad-alert {
-            background: rgba(251, 191, 36, 0.15);
-            border-left: 3px solid #f59e0b;
-            padding: 16px 20px;
-            font-size: 0.95em;
+
+        .info-slide.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .slide-content {
+            position: static;
+            background: none;
+            padding: 8px 0;
             color: var(--text-primary);
         }
-        .ad-alert strong { color: #d97706; }
-        .video-full {
-            width: 100%;
-            margin: 30px 0;
-            padding: 0 var(--spacing-md);
+
+        .title {
+            font-size: var(--font-size-sm);
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: lowercase;
         }
-        .video-container {
-            width: 100%;
-            max-width: 100%;
+
+        .episode {
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .duration {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .synopsis {
+            font-size: var(--font-size-xs);
+            color: var(--text-primary);
+            line-height: 1.5;
+            max-height: 48px;
             overflow: hidden;
-            box-shadow: 0 6px 30px var(--shadow-color);
-            background: #000;
-            min-height: 200px;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            margin-bottom: 12px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px; 
+            flex-wrap: wrap;
+        }
+
+        .carousel-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            text-align: center;
+            letter-spacing: 0.4px;
+        }
+
+        .slides-wrapper {
+            height: 340px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
-            font-size: 1.1rem;
-            text-align: center;
-            padding: 20px;
+            gap: 40px;
+            position: relative;
+            padding: 0 25px;
+            touch-action: pan-y;
         }
-        .video-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-        .video-placeholder i {
-            font-size: 3rem;
-            color: #9ca3af;
-        }
-        .synopsis {
-            background: var(--surface);
-            padding: 16px 20px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--text-primary);
-            border-left: 4px solid var(--highlight-color);
-            margin-top: 10px;
-        }
-        .episodes-list {
-            background: var(--surface);
-            padding: 20px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            border: 1px solid var(--border);
-        }
-        .episodes-title {
-            font-size: var(--font-size-lg);
-            font-weight: 700;
-            color: var(--highlight-color);
-            margin-bottom: 15px;
-        }
-        .episode-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.03);
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid var(--border);
-            gap: 10px;
-        }
-        [data-theme="dark"] .episode-item {
-            background: rgba(255,255,255,0.05);
-        }
-        .episode-item:hover {
-            background: var(--episodes-color);
-            color: white;
-            transform: translateX(5px);
-        }
-        .episode-item.active {
-            background: var(--episodes-color);
-            color: white;
-        }
-        .episode-item.watched {
-            background: var(--watched-bg) !important;
-            border-left: 4px solid #22c55e;
-        }
-        .episode-thumb {
-            width: 80px;
-            height: 45px;
+
+        .slide {
+            position: absolute;
+            transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out, width 0.6s ease-in-out, height 0.6s ease-in-out;
+            width: 204px;
+            height: 153px;
+            opacity: 0.4;
+            pointer-events: none;
+            cursor: grab;
             overflow: hidden;
-            flex-shrink: 0;
+            box-shadow: 0 2px 12px var(--shadow-color);
+            will-change: transform, opacity, width, height;
+            z-index: 5;
         }
-        .episode-thumb img {
+
+        .slide:active {
+            cursor: grabbing;
+        }
+
+        .slide.active {
+            transform: translateX(0) scale(1.15);
+            z-index: 20;
+            opacity: 1;
+            pointer-events: all;
+            width: 306px;
+            height: 229.5px;
+        }
+
+        .slide.prev {
+            transform: translateX(-130%) scale(0.9);
+            z-index: 10;
+            opacity: 0.4;
+        }
+
+        .slide.next {
+            transform: translateX(130%) scale(0.9);
+            z-index: 10;
+            opacity: 0.4;
+        }
+
+        .slide.animate-hint {
+            animation: slideHint 4s ease-in-out forwards;
+        }
+
+        @keyframes slideHint {
+            0% { transform: translateX(0) scale(1.15); }
+            50% { transform: translateX(-50%) scale(1.15); }
+            100% { transform: translateX(50%) scale(1.15); }
+            100% { transform: translateX(0) scale(1.15); }
+        }
+
+        .slide img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
+            loading: lazy;
+            z-index: 6;
         }
-        .episode-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .episode-number {
-            font-weight: 700;
-            color: inherit;
-            font-size: 0.9rem;
-        }
-        .episode-title {
-            font-size: 0.9rem;
-            margin-top: 2px;
-        }
-        .episode-size {
-            font-size: 0.75rem;
-            color: #6b7280;
-            font-weight: 500;
-        }
-        .episode-actions {
-            display: flex;
-            gap: 6px;
-        }
-        .ep-btn {
-            padding: 6px 10px;
+
+        .action-button {
+            padding: 8px 16px; 
             border: none;
-            font-size: 0.75rem;
-            font-weight: 600;
             cursor: pointer;
+            font-family: 'Ubuntu', sans-serif;
+            font-weight: 500;
+            font-size: var(--font-size-sm);
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
-            transition: all 0.2s;
+            transition: transform 0.2s ease, background 0.2s ease;
+            min-width: 100px;
+            text-align: center;
+            background: var(--highlight-color);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
         }
-        .ep-btn.watch {
-            background: #1f2937;
-            color: white;
+
+        .action-button::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            transform: scale(0);
         }
-        .ep-btn.watch:hover {
-            background: #111827;
+
+        .action-button:hover::after {
+            opacity: 1;
+            transform: scale(2);
+        }
+
+        .action-button.watch-now {
+            background: var(--highlight-color);
+        }
+
+        .action-button.watch-now:hover {
+            background: var(--highlight-hover);
             transform: scale(1.05);
         }
-        .ep-btn.download {
-            background: #059669;
-            color: white;
+
+        .action-button.next-ep {
+            background: var(--episodes-color);
         }
-        .ep-btn.download:hover {
-            background: #047857;
+
+        .action-button.next-ep:hover {
+            background: var(--episodes-hover);
             transform: scale(1.05);
         }
+
+        .action-button.episodes {
+            background: var(--episodes-color);
+        }
+
+        .action-button.episodes:hover {
+            background: var(--episodes-hover);
+            transform: scale(1.05);
+        }
+
+        .action-button.report-error {
+            background: var(--report-error-color);
+        }
+
+        .action-button.report-error:hover {
+            background: var(--report-error-hover);
+            transform: scale(1.05);
+        }
+
+        .action-button:disabled {
+            background: #808080;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .notification {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 18px 35px;
-            background: rgba(31, 41, 55, 0.98);
-            color: #fff;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+            padding: 15px 30px;
+            background: rgba(18, 21, 32, 0.95);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px var(--shadow-color);
             opacity: 0;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
             z-index: 2000;
             font-size: var(--font-size-md);
             font-weight: 500;
             text-align: center;
             max-width: 90%;
-            pointer-events: auto;
-            cursor: pointer;
+            width: 400px;
         }
-        .notification.show { opacity: 1; }
-        .modal {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .modal.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-content {
-            background: var(--surface);
-            padding: 30px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 12px 40px var(--shadow-color);
-            border: 1px solid var(--border);
-            text-align: center;
+
+        [data-theme="light"] .notification {
+            background: rgba(255, 255, 255, 0.95);
             color: var(--text-primary);
         }
-        .modal-title {
+        [data-theme="dark"] .notification {
+            background: rgba(18, 21, 32, 0.95);
+            color: var(--text-primary);
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        .anime-trailer {
+            max-width: 800px;
+            width: 95%;
+            margin: var(--spacing-section) auto;
+            padding: 17px;
+            background: var(--surface);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            color: var(--text-primary);
+        }
+
+        .anime-trailer h2 {
             font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 15px;
             color: var(--highlight-color);
-            font-weight: 700;
+        }
+
+        .trailer-embed {
+            position: relative;
+            padding-bottom: 56.25%; 
+            height: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .trailer-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .anime-info {
+            max-width: 800px;
+            width: 95%;
+            margin: var(--spacing-section) auto;
+            padding: 17px;
+            background: var(--surface);
+            box-shadow: 0 4px 20px var(--shadow-color);
+            color: var(--text-primary);
+        }
+
+        .anime-info h2 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--highlight-color);
+        }
+
+        .anime-info p {
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .footer {
+            width: 100%;
+            background: var(--surface); /* Adaptado */
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 16px 0;
+            margin-top: var(--spacing-section);
+            box-shadow: 0 -2px 5px var(--shadow-color);
+            font-size: var(--font-size-xs);
+        }
+
+        .footer a {
+            color: var(--highlight-color);
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.2s ease;
+        }
+
+        .footer a:hover {
+            color: var(--highlight-hover);
+        }
+
+        .episodes-menu {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: var(--menu-background);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            transition: left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .episodes-menu.open {
+            left: 0;
+        }
+
+        .episodes-menu__title {
+            font-size: var(--font-size-md);
+            font-weight: 600;
+            color: var(--text-primary);
             margin-bottom: 15px;
         }
-        .modal p {
-            margin-bottom: 12px;
-            line-height: 1.6;
+
+        .episodes-menu__list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .modal-btn {
-            margin-top: 20px;
-            padding: 12px 20px;
-            background: var(--highlight-color);
-            color: white;
+
+        .episodes-menu__item {
+            background: var(--menu-item-background);
+            color: var(--text-primary);
             border: none;
+            padding: 10px;
+            text-align: left;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
             cursor: pointer;
-            font-weight: 600;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .episodes-menu__item.last-watched {
+            border-color: var(--highlight-color);
+        }
+
+        .episodes-menu__item:hover {
+            background: var(--menu-item-hover-background);
+        }
+
+        .episodes-menu__overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            font-size: 1rem;
-            transition: background 0.2s;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2999;
+            display: none;
         }
-        .modal-btn:hover {
-            background: var(--highlight-hover);
+
+        .episodes-menu__overlay.active {
+            display: block;
         }
-        #countdown {
-            font-size: 3em;
-            font-weight: bold;
-            color: var(--highlight-color);
-            text-align: center;
-            margin: 20px 0;
-        }
+
         @media (max-width: 768px) {
-            .anime-image { max-width: 300px; }
-            .episode-thumb { width: 60px; height: 34px; }
+            :root {
+                --spacing-section: 25px;
+            }
+
+            .header h1 { font-size: 1rem; }
+            .top-bar__icon i { font-size: 1rem; }
+
+            .slides-wrapper {
+                height: 289px;
+                gap: 25.5px;
+                padding: 0 12px;
+            }
+
+            .slide {
+                width: 170px;
+                height: 127.5px;
+            }
+
+            .slide.active {
+                width: 255px;
+                height: 191.25px;
+            }
+
+            .slide.prev {
+                transform: translateX(-110%) scale(0.9);
+            }
+
+            .slide.next {
+                transform: translateX(110%) scale(0.9);
+            }
+
+            .title {
+                font-size: var(--font-size-xs);
+            }
+
+            .episode, .duration, .synopsis {
+                font-size: calc(var(--font-size-xs) * 0.9);
+            }
+
+            .actions .action-button {
+                padding: 6px 12px; 
+                font-size: var(--font-size-xs);
+                min-width: 80px;
+            }
+
+            .notification {
+                font-size: var(--font-size-sm);
+                padding: 10px 20px;
+                width: 300px;
+            }
+
+            .episodes-menu {
+                width: 80%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slides-wrapper {
+                height: 250px;
+            }
+
+            .slide {
+                width: 150px;
+                height: 112.5px;
+            }
+
+            .slide.active {
+                width: 225px;
+                height: 168.75px;
+            }
         }
     </style>
 </head>
 <body data-theme="light">
-    <header class="header">
-        <div class="header__title">Anime i Geek</div>
-        <nav class="header__nav">
-            <button class="header__theme-toggle" aria-label="Alternar tema">
-                <i class="fas fa-sun"></i> Tema
-            </button>
+    <div class="header-menu">
+        <nav class="header">
+            <div class="top-bar__section">
+                <h1><i class="fas fa-dragon"></i>Anime I Geek</h1>
+            </div>
+            <div class="top-bar__section">
+                <button aria-label="Alternar menu" class="top-bar__icon" id="menu-icon">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <button aria-label="Alternar tema" class="top-bar__icon" id="theme-toggle">
+                    <i class="fas fa-adjust"></i>
+                </button>
+            </div>
         </nav>
-    </header>
+        <nav class="menu" id="main-menu">
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Pesquisar anime..." id="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="result-card" id="result-card"></div>
+        </nav>
+    </div>
 
-    <div class="main-container">
-        <div class="anime-image">
-            <img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Death Note">
-        </div>
-
-        <div class="info-card">
-            <div class="title">Death Note</div>
-            <div class="ad-alert">
-                <strong>Aviso:</strong> Um anúncio será exibido antes de assistir ou baixar. A página anime i geek não se responsabiliza pelos anúncios mostrados pelos patrocinadores.
-            </div>
-        </div>
-
-        <div class="video-full">
-            <div class="video-container">
-                <div class="video-placeholder">
-                    <i class="fas fa-code"></i> <div>Player em desenvolvimento!</div>
-                    <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 8px;">
-                        Ao clicar em ASSISTIR, você será redirecionado para uma propaganda aguarde 10 segundos caso não seja redirecionado automaticamente para o player do Google Drive saia da propaganda volte nessa pagina e clique em assistir novamente.
-                    </div>
-                </div>
-            </div>
-            <div class="synopsis">
-                <strong>Sinopse:</strong> Light Yagami, um estudante brilhante e entediado, encontra o Death Note, um caderno sobrenatural que permite matar qualquer pessoa apenas escrevendo seu nome. Decidido a criar um mundo sem criminosos, Light assume o manto de Kira, mas sua cruzada atrai a atenção de L, o maior detetive do mundo. O que se segue é um jogo de gato e rato psicológico cheio de reviravoltas, dilemas morais e batalhas de inteligência, onde cada movimento pode ser fatal.
-            </div>
-        </div>
-
-       <div class="episodes-list">
-        <div class="episodes-title">Episódios (37)</div>
-        <div class="episode-item active" data-ep="1">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 1"></div>
-            <div class="episode-info">
-                <div class="episode-number">01</div>
-                <div class="episode-title">Renascimento</div>
-                <div class="episode-size">~150MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="2">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 2"></div>
-            <div class="episode-info">
-                <div class="episode-number">02</div>
-                <div class="episode-title">Confronto</div>
-                <div class="episode-size">~172MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="3">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 3"></div>
-            <div class="episode-info">
-                <div class="episode-number">03</div>
-                <div class="episode-title">Negociação</div>
-                <div class="episode-size">~160MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="4">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 4"></div>
-            <div class="episode-info">
-                <div class="episode-number">04</div>
-                <div class="episode-title">Perseguição</div>
-                <div class="episode-size">~165MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="5">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 5"></div>
-            <div class="episode-info">
-                <div class="episode-number">05</div>
-                <div class="episode-title">Tática</div>
-                <div class="episode-size">~158MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="6">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 6"></div>
-            <div class="episode-info">
-                <div class="episode-number">06</div>
-                <div class="episode-title">Aliança</div>
-                <div class="episode-size">~170MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="7">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 7"></div>
-            <div class="episode-info">
-                <div class="episode-number">07</div>
-                <div class="episode-title">Desconfiança</div>
-                <div class="episode-size">~162MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="8">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 8"></div>
-            <div class="episode-info">
-                <div class="episode-number">08</div>
-                <div class="episode-title">Encontro</div>
-                <div class="episode-size">~168MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="9">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 9"></div>
-            <div class="episode-info">
-                <div class="episode-number">09</div>
-                <div class="episode-title">Estratégia</div>
-                <div class="episode-size">~155MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="10">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 10"></div>
-            <div class="episode-info">
-                <div class="episode-number">10</div>
-                <div class="episode-title">Revelação</div>
-                <div class="episode-size">~175MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="11">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 11"></div>
-            <div class="episode-info">
-                <div class="episode-number">11</div>
-                <div class="episode-title">Dúvida</div>
-                <div class="episode-size">~160MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="12">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 12"></div>
-            <div class="episode-info">
-                <div class="episode-number">12</div>
-                <div class="episode-title">Plano</div>
-                <div class="episode-size">~165MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="13">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 13"></div>
-            <div class="episode-info">
-                <div class="episode-number">13</div>
-                <div class="episode-title">Conflito</div>
-                <div class="episode-size">~170MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="14">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 14"></div>
-            <div class="episode-info">
-                <div class="episode-number">14</div>
-                <div class="episode-title">Decisão</div>
-                <div class="episode-size">~158MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="15">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 15"></div>
-            <div class="episode-info">
-                <div class="episode-number">15</div>
-                <div class="episode-title">Sacrifício</div>
-                <div class="episode-size">~162MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="16">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 16"></div>
-            <div class="episode-info">
-                <div class="episode-number">16</div>
-                <div class="episode-title">Traição</div>
-                <div class="episode-size">~168MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="17">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 17"></div>
-            <div class="episode-info">
-                <div class="episode-number">17</div>
-                <div class="episode-title">Vingança</div>
-                <div class="episode-size">~175MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="18">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 18"></div>
-            <div class="episode-info">
-                <div class="episode-number">18</div>
-                <div class="episode-title">Descoberta</div>
-                <div class="episode-size">~160MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="19">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 19"></div>
-            <div class="episode-info">
-                <div class="episode-number">19</div>
-                <div class="episode-title">Ameaça</div>
-                <div class="episode-size">~165MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="20">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 20"></div>
-            <div class="episode-info">
-                <div class="episode-number">20</div>
-                <div class="episode-title">Confrontação</div>
-                <div class="episode-size">~170MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="21">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 21"></div>
-            <div class="episode-info">
-                <div class="episode-number">21</div>
-                <div class="episode-title">Mudança</div>
-                <div class="episode-size">~158MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="22">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 22"></div>
-            <div class="episode-info">
-                <div class="episode-number">22</div>
-                <div class="episode-title">Perigo</div>
-                <div class="episode-size">~162MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="23">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 23"></div>
-            <div class="episode-info">
-                <div class="episode-number">23</div>
-                <div class="episode-title">Escolha</div>
-                <div class="episode-size">~168MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="24">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 24"></div>
-            <div class="episode-info">
-                <div class="episode-number">24</div>
-                <div class="episode-title">Armadilha</div>
-                <div class="episode-size">~175MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="25">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 25"></div>
-            <div class="episode-info">
-                <div class="episode-number">25</div>
-                <div class="episode-title">Segredo</div>
-                <div class="episode-size">~160MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="26">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 26"></div>
-            <div class="episode-info">
-                <div class="episode-number">26</div>
-                <div class="episode-title">Desafio</div>
-                <div class="episode-size">~165MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="27">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 27"></div>
-            <div class="episode-info">
-                <div class="episode-number">27</div>
-                <div class="episode-title">Reviravolta</div>
-                <div class="episode-size">~170MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="28">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 28"></div>
-            <div class="episode-info">
-                <div class="episode-number">28</div>
-                <div class="episode-title">Fuga</div>
-                <div class="episode-size">~158MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="29">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 29"></div>
-            <div class="episode-info">
-                <div class="episode-number">29</div>
-                <div class="episode-title">Alvo</div>
-                <div class="episode-size">~162MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="30">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 30"></div>
-            <div class="episode-info">
-                <div class="episode-number">30</div>
-                <div class="episode-title">Missão</div>
-                <div class="episode-size">~168MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="31">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 31"></div>
-            <div class="episode-info">
-                <div class="episode-number">31</div>
-                <div class="episode-title">Plano Final</div>
-                <div class="episode-size">~175MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="32">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 32"></div>
-            <div class="episode-info">
-                <div class="episode-number">32</div>
-                <div class="episode-title">Ataque</div>
-                <div class="episode-size">~160MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="33">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 33"></div>
-            <div class="episode-info">
-                <div class="episode-number">33</div>
-                <div class="episode-title">Despedida</div>
-                <div class="episode-size">~165MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="34">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 34"></div>
-            <div class="episode-info">
-                <div class="episode-number">34</div>
-                <div class="episode-title">Justiça</div>
-                <div class="episode-size">~170MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="35">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 35"></div>
-            <div class="episode-info">
-                <div class="episode-number">35</div>
-                <div class="episode-title">Fim</div>
-                <div class="episode-size">~158MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="36">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 36"></div>
-            <div class="episode-info">
-                <div class="episode-number">36</div>
-                <div class="episode-title">Legado</div>
-                <div class="episode-size">~162MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
-            </div>
-        </div>
-        <div class="episode-item" data-ep="37">
-            <div class="episode-thumb"><img src="https://i.postimg.cc/RhzyFtBZ/MV5BYTgy-ZDhm-MTEt-ZDFh-Ni00MTc4LTg3Nj-Ut-YWJl-NGE5Mzk2Nz-Mx-Xk-Ey-Xk-Fqc-Gc-V1.jpg" alt="Ep 37"></div>
-            <div class="episode-info">
-                <div class="episode-number">37</div>
-                <div class="episode-title">Novo Mundo</div>
-                <div class="episode-size">~168MB (SD)</div>
-            </div>
-            <div class="episode-actions">
-                <button class="ep-btn watch" data-action="watch"><i class="fas fa-play"></i> Assistir</button>
-                <button class="ep-btn download" data-action="download"><i class="fas fa-download"></i> Baixar</button>
+    <div class="slideshow-container" id="slideshow-container" aria-live="polite">
+        <div class="carousel-section">
+            <div class="carousel-title" id="carouselTitle">Death Note - Episódio 1</div>
+            <div class="slides-wrapper" id="slidesWrapper">
+                <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
+                <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
             </div>
         </div>
     </div>
-
-    <div class="modal" id="countdownModal">
-        <div class="modal-content">
-            <div class="modal-title">Aguardando Anúncio</div>
-            <p>Por favor, espere 10 segundos na página do anúncio.</p>
-            <div id="countdown">10</div>
+    <div class="info-carousel-container" id="infoCarousel">
+        <div class="info-slides-wrapper" id="infoSlidesWrapper"></div>
+    </div>
+    
+    <div class="anime-trailer">
+        <h2>Trailer</h2>
+        <div class="trailer-embed">
+            <iframe 
+                src="https://www.youtube.com/embed/OcvYRCYm2OE" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen
+                title="Trailer de Death Note"
+            ></iframe>
         </div>
     </div>
-
-    <div class="modal" id="redownloadModal">
-        <div class="modal-content">
-            <div class="modal-title">Download já iniciado</div>
-            <p>O download desse arquivo já foi feito.</p>
-            <p>Deseja baixar novamente?</p>
-            <button class="modal-btn" id="confirmRedownload">OK</button>
-            <button class="modal-btn" id="cancelRedownload" style="margin-top:10px; background:#6b7280;">Cancelar</button>
-        </div>
+    <div class="anime-info">
+        <h2>Sobre Death Note</h2>
+        <p><strong>Gênero:</strong> Mistério, Sobrenatural, Policial, Suspense, Psicológico</p>
+        <p><strong>Estúdio:</strong> Madhouse</p>
+        <p><strong>Diretor:</strong> Tetsurō Araki</p>
+        <p><strong>Ano:</strong> 2006</p>
+        <p><strong>Total de Episódios:</strong> 37</p>
+        <p><strong>Sinopse:</strong> Light Yagami, um estudante do ensino médio brilhante mas entediado, descobre um caderno misterioso chamado 'Death Note', jogado na Terra pelo Shinigami Ryuk. O caderno concede ao seu usuário o poder de matar qualquer pessoa cujo nome seja escrito nele. Light decide usar o Death Note para livrar o mundo do mal e se tornar o 'Deus' de um novo mundo. No entanto, suas ações chamam a atenção de L, um detetive de elite mundialmente famoso, que inicia uma caçada para capturar Light, conhecido publicamente como Kira. O anime é um intenso jogo de xadrez psicológico e moral entre dois gênios.</p>
     </div>
-
+    <div class="footer">
+        <p>© 2025 Death Note. Todos os direitos reservados. Desenvolvido por xAI.</p>
+        </div>
     <div class="notification" id="notification"></div>
+    <div class="episodes-menu" id="episodesMenu">
+        <div class="episodes-menu__title">Lista de Episódios</div>
+        <div class="episodes-menu__list" id="episodesMenuList"></div>
+    </div>
+    <div class="episodes-menu__overlay" id="episodesMenuOverlay"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script>
+    <script type="module">
+        // Importações do Firebase
+        // NOVO: Importa initializeApp
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        // NOVO: Importação do Firestore
+        import { getFirestore, collection, addDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Variáveis globais para simulação (Mantidas do seu script original)
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        // --- INICIALIZAÇÃO DO FIREBASE CORRIGIDA ---
+        // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyA9vB_annutvZByThKrsPJbsP9VZ7gyWB0",
+            apiKey: "AIzaSyA9vB_anmutvZByIhKxsPJbsP0VZ7gyWB0",
             authDomain: "sorteio-mega-sorte.firebaseapp.com",
             projectId: "sorteio-mega-sorte",
-            storageBucket: "sorteio-mega-sorte.appspot.com",
+            storageBucket: "sorteio-mega-sorte.firebasestorage.app",
             messagingSenderId: "776750928407",
-            appId: "1:776750928407:web:72da06debB97302b5c252"
+            appId: "1:776750928407:web:72da06deb8b97302b5c252",
+            measurementId: "G-GDZ7D30N0G"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        
+        // 1. Inicializa o Firebase. Se já estiver inicializado em outro lugar, ele retornará a instância [DEFAULT] existente.
+        const app = initializeApp(firebaseConfig);
+        
+        // 2. Obtém a referência do Firestore usando a instância 'app' recém-inicializada.
+        const db = getFirestore(app);
+        // --- FIM DA INICIALIZAÇÃO DO FIREBASE CORRIGIDA ---
 
-        let currentEpisode = 1;
-        const adUrl = 'https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb';
-        let isBlocked = false;
-        let adWindow = null;
-        let adTimer = null;
-        let adStartTime = null;
-        let hasWaited = false;
-        let countdownInterval = null;
-        let lastAdClick = parseInt(localStorage.getItem('lastAdClick') || '0');
-        let pendingDownloadEp = null;
+        // As referências a analytics e db devem ser feitas no escopo global do módulo para evitar re-inicialização.
+        // Já que estão no mesmo arquivo, confiaremos que as referências globais do script do cabeçalho
+        // (window.getAnalytics, window.getFirestore, etc.) foram estabelecidas ou acessíveis.
+        // No entanto, para fins de execução, vamos definir as constantes localmente.
+        // O script do cabeçalho define db no escopo do módulo, o que pode não ser acessível aqui.
+        // Para garantir, vamos recriar a inicialização localmente, mas a prática ideal seria usar um único arquivo JS.
+        // Como o script do cabeçalho usa a tag <script type="module"> e não define window.db, é necessário redefinir a lógica aqui.
+        
+        // REMOVIDO: const dbRef = getFirestore(app); // VAI USAR 'db' AGORA
 
-        const notification = document.getElementById('notification');
-        // const unavailableModal = document.getElementById('unavailableModal'); // Removido
-        // const closeUnavailable = document.getElementById('closeUnavailable'); // Removido
-        const redownloadModal = document.getElementById('redownloadModal');
-        const confirmRedownload = document.getElementById('confirmRedownload');
-        const cancelRedownload = document.getElementById('cancelRedownload');
-        const themeToggle = document.querySelector('.header__theme-toggle');
+        // --- FUNÇÕES DE RASTREAMENTO NO FIRESTORE (NOVO) ---
+        // ... (as funções getIPAddress e recordUserInteraction estão aqui, usando 'db' no escopo do módulo superior) ...
+        async function getIPAddress() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.warn("Aviso: Falha ao obter o IP. Registrando como IP_NAO_DISPONIVEL.");
+                return "IP_NAO_DISPONIVEL";
+            }
+        }
+        
+        async function recordUserInteraction(eventType, episodeIndex, adLink = null) {
+            const episodeData = config.series[episodeIndex];
+            if (!episodeData) return;
+            const userIP = await getIPAddress();
+            const episodeId = episodeData.episode.replace(/[\s\W]+/g, '_').toLowerCase().replace(/_+/g, '_').replace(/^_|_$/g, '');
+            // Acesso ao db (Firestore)
+            // Agora usa a constante 'db' definida no escopo do módulo, garantindo que seja a instância correta.
+            
+            // REMOVIDO: const localDb = getFirestore(app); // Não é mais necessário
 
-        // NOVOS LINKS DO GOOGLE DRIVE PARA O BOTÃO "ASSISTIR"
-        const watchLinks = {
-            1: "https://drive.google.com/file/d/1tI7_aQpxp3tCXn8qPntzL6hgBjsEwS4e/view",
-            2: "https://drive.google.com/file/d/1aXWua0ueygwP5cJz1OyXFRhiVoV7VXcV/view",
-            3: "https://drive.google.com/file/d/1djjUqe3aMHmZbSB7DlzqVxfI60S-gV5h/view",
-            4: "https://drive.google.com/file/d/1jRuazHWSw0aOaZf7tX4kkPqpe75YfxD1/view",
-            5: "https://drive.google.com/file/d/1rWC17ap_w_p83__Uk2-p_EQQq9i4NdxO/view",
-            6: "https://drive.google.com/file/d/1fh7lAomYKGb4b86I0MwsefBLGAzI5yPU/view",
-            7: "https://drive.google.com/file/d/1U3XTsXfe_cVB7jt6zoZckZ5MKEpIyQjP/view",
-            8: "https://drive.google.com/file/d/1aj31lf4HAnPGgX2R0M2ERGPw7JCBB8m2/view",
-            9: "https://drive.google.com/file/d/1XlEzW5rvseBu9GsdUBH4JIvGRfixFsQP/view",
-            10: "https://drive.google.com/file/d/1O0LwCUMcTxxPlxWgDSw4nNYGlqQNewCu/view",
-            11: "https://drive.google.com/file/d/1WGuPuAMZOWa30Mvx7sGnLCxn9j8xZ4ZH/view",
-            12: "https://drive.google.com/file/d/1y1c1JXxB7L5F6kJO7x7oZyvvgDph5rg2/view",
-            13: "https://drive.google.com/file/d/15LKSnOJ7B3NaWDmVvvzrGkmmGaQoghs2/view",
-            14: "https://drive.google.com/file/d/1YeVnLi024hDMVug6IFi3hWYIYLHWWA9N/view",
-            15: "https://drive.google.com/file/d/1prGrwMkTR0e9YrjmM7tYfXz7lzy3Tlsq/view",
-            16: "https://drive.google.com/file/d/12Fv-tTxPhesWeTvbpdUybnE5mJLnWplC/view",
-            17: "https://drive.google.com/file/d/185qtfmE4yrWUXoVpfj3zHHHDisvO9jX6/view",
-            18: "https://drive.google.com/file/d/1e50Rod4XtqJo_ZjK9olR3WwBYljs9F09/view",
-            19: "https://drive.google.com/file/d/1uPoQSplhIfFiQHcnW3PTV3nx8Ov4m7Eo/view",
-            20: "https://drive.google.com/file/d/1oDud7g9NCsT66WKu4qGjLwBCot6EExX1/view",
-            21: "https://drive.google.com/file/d/154FGAFMSN-4bKZRaH_20ELW3mL6ejIZJ/view",
-            22: "https://drive.google.com/file/d/1MeX89zd_mo37_bKSXJnQMD9RQRM98qPo/view",
-            23: "https://drive.google.com/file/d/1CTb-WoVDjgN3u6ZSbzCmaMRLn4-yfhAo/view",
-            24: "https://drive.google.com/file/d/1EHW9Tu-DuoNWcQywSJJ4haiDNX7oPJqg/view",
-            25: "https://drive.google.com/file/d/1Vfr9f_SlSBGKyRGjsvLhku7VKjLsTHdA/view",
-            26: "https://drive.google.com/file/d/1jRxmCfNyEmY8tV6uqcBMRJ8ImlHWAHkp/view",
-            27: "https://drive.google.com/file/d/17LnFmasZnUE884_glD2Mo9dKfxlrBavj/view",
-            28: "https://drive.google.com/file/d/1-JMkDqRKtmfrn39fwweiERYgqmHR94ci/view",
-            29: "https://drive.google.com/file/d/1p7V67_tByPK5okr0mgeIx019FVeX_a9s/view",
-            30: "https://drive.google.com/file/d/1WblpN4nvwDuRtQbeDLTD20IYsDpme0_X/view",
-            31: "https://drive.google.com/file/d/13KcxOEZYqD1xa3RWcMkSpWCZ-Xc0qe9I/view",
-            32: "https://drive.google.com/file/d/1Sy-KniBY441POvCC90vjpsj1Mf25rweL/view",
-            33: "https://drive.google.com/file/d/1rb9q50LipKwh8mRmWLZnxUhurLRi3QQj/view",
-            34: "https://drive.google.com/file/d/1fp-UIW1isyCMLjAp8U4OTCZLYVh2qtF7/view",
-            35: "https://drive.google.com/file/d/1rWGLMsgYmiAhHoPPDFA11bGOXsDTPqID/view",
-            36: "https://drive.google.com/file/d/1xlpvQqDceyA29PFtyWKx-s9Ks79lH2_m/view",
-            37: "https://drive.google.com/file/d/1nDYqw9ZKj885gfQw8785W9fZj9QjuFki/view"
-        };
-        // LINKS DE DOWNLOAD ORIGINAIS (MANTIDOS)
-        const downloadLinks = {
-            1: "https://lightspeedst.net/s3/mp4/death-note/sd/1.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%201%20(SD)",
-            2: "https://lightspeedst.net/s3/mp4/death-note/sd/2.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%202%20(SD)",
-            3: "https://lightspeedst.net/s3/mp4/death-note/sd/3.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%203%20(SD)",
-            4: "https://lightspeedst.net/s3/mp4/death-note/sd/4.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%204%20(SD)",
-            5: "https://lightspeedst.net/s3/mp4/death-note/sd/5.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%205%20(SD)",
-            6: "https://lightspeedst.net/s3/mp4/death-note/sd/6.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%206%20(SD)",
-            7: "https://lightspeedst.net/s3/mp4/death-note/sd/7.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%207%20(SD)",
-            8: "https://lightspeedst.net/s3/mp4/death-note/sd/8.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%208%20(SD)",
-            9: "https://lightspeedst.net/s3/mp4/death-note/sd/9.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%209%20(SD)",
-            10: "https://lightspeedst.net/s3/mp4/death-note/sd/10.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2010%20(SD)",
-            11: "https://lightspeedst.net/s3/mp4/death-note/sd/11.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2011%20(SD)",
-            12: "https://lightspeedst.net/s3/mp4/death-note/sd/12.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2012%20(SD)",
-            13: "https://lightspeedst.net/s3/mp4/death-note/sd/13.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2013%20(SD)",
-            14: "https://lightspeedst.net/s3/mp4/death-note/sd/14.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2014%20(SD)",
-            15: "https://lightspeedst.net/s3/mp4/death-note/sd/15.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2015%20(SD)",
-            16: "https://lightspeedst.net/s3/mp4/death-note/sd/16.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2016%20(SD)",
-            17: "https://lightspeedst.net/s3/mp4/death-note/sd/17.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2017%20(SD)",
-            18: "https://lightspeedst.net/s3/mp4/death-note/sd/18.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2018%20(SD)",
-            19: "https://lightspeedst.net/s3/mp4/death-note/sd/19.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2019%20(SD)",
-            20: "https://lightspeedst.net/s3/mp4/death-note/sd/20.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2020%20(SD)",
-            21: "https://lightspeedst.net/s3/mp4/death-note/sd/21.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2021%20(SD)",
-            22: "https://lightspeedst.net/s3/mp4/death-note/sd/22.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2022%20(SD)",
-            23: "https://lightspeedst.net/s3/mp4/death-note/sd/23.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2023%20(SD)",
-            24: "https://lightspeedst.net/s3/mp4/death-note/sd/24.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2024%20(SD)",
-            25: "https://lightspeedst.net/s3/mp4/death-note/sd/25.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2025%20(SD)",
-            26: "https://lightspeedst.net/s3/mp4/death-note/sd/26.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2026%20(SD)",
-            27: "https://lightspeedst.net/s3/mp4/death-note/sd/27.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2027%20(SD)",
-            28: "https://lightspeedst.net/s3/mp4/death-note/sd/28.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2028%20(SD)",
-            29: "https://lightspeedst.net/s3/mp4/death-note/sd/29.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2029%20(SD)",
-            30: "https://lightspeedst.net/s3/mp4/death-note/sd/30.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2030%20(SD)",
-            31: "https://lightspeedst.net/s3/mp4/death-note/sd/31.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2031%20(SD)",
-            32: "https://lightspeedst.net/s3/mp4/death-note/sd/32.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2032%20(SD)",
-            33: "https://lightspeedst.net/s3/mp4/death-note/sd/33.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2033%20(SD)",
-            34: "https://lightspeedst.net/s3/mp4/death-note/sd/34.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2034%20(SD)",
-            35: "https://lightspeedst.net/s3/mp4/death-note/sd/35.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2035%20(SD)",
-            36: "https://lightspeedst.net/s3/mp4/death-note/sd/36.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2036%20(SD)",
-            37: "https://lightspeedst.net/s3/mp4/death-note/sd/37.mp4?type=video/mp4&title=[AnimeFire.plus]%20Death%20Note%20-%20Epis%C3%B3dio%2037%20(SD)"
-        };
+            const episodeRef = doc(db, 'animes', 'death_note_legendado', 'episodios', episodeId);
 
-        const watched = JSON.parse(localStorage.getItem('deathnote_watched') || '[]');
-        const downloaded = JSON.parse(localStorage.getItem('deathnote_downloaded') || '[]');
+            const interactionData = {
+                timestamp: new Date().toISOString(),
+                eventType: eventType,
+                episodeId: episodeId,
+                episode: episodeData.episode,
+                episodeTitle: episodeData.title,
+                ipAddress: userIP,
+                userAgent: navigator.userAgent,
+                screenResolution: `${window.screen.width}x${window.screen.height}`,
+                ...(adLink && { adLink: adLink })
+            };
 
-        function markWatched(ep) {
-            if (!watched.includes(ep)) {
-                watched.push(ep);
-                localStorage.setItem('deathnote_watched', JSON.stringify(watched));
-                const item = document.querySelector(`[data-ep="${ep}"]`);
-                if (item) item.classList.add('watched');
+            try {
+                await addDoc(collection(episodeRef, 'interacoes'), interactionData);
+                console.log(`Firebase Registrado: ${eventType} para ${episodeData.episode} (IP: ${userIP})`);
+            } catch (e) {
+                console.error("ERRO ao registrar no Firestore. Detalhes:", e);
             }
         }
 
-        function markDownloaded(ep) {
-            if (!downloaded.includes(ep)) {
-                downloaded.push(ep);
-                localStorage.setItem('deathnote_downloaded', JSON.stringify(downloaded));
-                markWatched(ep);
-            }
-        }
+        // --- LÓGICA DO CARROSSEL E EVENTOS (ADAPTADA) ---
 
-        [...watched, ...downloaded].forEach(ep => {
-            const item = document.querySelector(`[data-ep="${ep}"]`);
-            if (item) item.classList.add('watched');
-        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideshowContainer = document.getElementById('slideshow-container');
+            const notification = document.getElementById('notification');
+            const themeToggle = document.getElementById('theme-toggle'); // Usando ID do novo cabeçalho
+            const body = document.body;
+            const episodesMenu = document.getElementById('episodesMenu');
+            const episodesMenuList = document.getElementById('episodesMenuList');
+            const episodesMenuOverlay = document.getElementById('episodesMenuOverlay');
+            const infoCarousel = document.getElementById('infoCarousel');
+            const infoSlidesWrapper = document.getElementById('infoSlidesWrapper');
+            const carouselTitle = document.getElementById('carouselTitle');
 
-        function showNotification(msg, duration = 5000) {
-            notification.textContent = msg;
-            notification.classList.add('show');
-            notification.onclick = () => notification.classList.remove('show');
-            setTimeout(() => notification.classList.remove('show'), duration);
-        }
-
-        function showCountdownModal() {
-            const modal = document.getElementById('countdownModal');
-            modal.classList.add('show');
-            let seconds = 10;
-            document.getElementById('countdown').textContent = seconds;
-            countdownInterval = setInterval(() => {
-                seconds--;
-                document.getElementById('countdown').textContent = seconds;
-                if (seconds <= 0) {
-                    clearInterval(countdownInterval);
-                    modal.classList.remove('show');
-                }
-            }, 1000);
-        }
-
-        async function abrirAnuncio(tipo, ep) {
-            if (isBlocked) return;
-            isBlocked = true;
-            showNotification('Abrindo anúncio...');
-
-            setTimeout(() => {
-                adWindow = window.open(adUrl, '_blank');
-                if (!adWindow) {
-                    showNotification('Pop-up bloqueado! Ative pop-ups.', 8000);
-                    isBlocked = false;
-                    return;
-                }
-                adStartTime = Date.now();
-                hasWaited = false;
-                showCountdownModal();
-
-                adTimer = setInterval(() => {
-                    if (adWindow.closed) {
-                        clearInterval(adTimer);
-                        clearInterval(countdownInterval);
-                        document.getElementById('countdownModal').classList.remove('show');
-                        const timeSpent = Date.now() - adStartTime;
-                        if (timeSpent >= 10000) {
-                            hasWaited = true;
-                            markWatched(ep);
-                            if (tipo === "watch") {
-                                // AÇÃO ATUALIZADA: Redireciona para o link do Google Drive
-                                const link = watchLinks[ep];
-                                if (link) {
-                                    window.location.href = link;
-                                } else {
-                                    showNotification("Link de Assistir não encontrado para o ep " + ep);
-                                }
-                            } else {
-                                const link = downloadLinks[ep];
-                                if (link) {
-                                    window.location.href = link;
-                                    markDownloaded(ep);
-                                } else {
-                                    showNotification("Link de Download não encontrado para o ep " + ep);
-                                }
-                            }
-                        } else {
-                            showNotification('Você saiu cedo. Aguarde 10s no anúncio.', 5000);
-                        }
-                        isBlocked = false;
-                    }
-                }, 500);
-
-                setTimeout(() => {
-                    if (!adWindow.closed && !hasWaited) {
-                        hasWaited = true;
-                        markWatched(ep);
-                        if (tipo === "watch") {
-                            // Redireciona mesmo se a janela estiver aberta (usuário pode estar assistindo ao anúncio em outra aba)
-                            const link = watchLinks[ep];
-                            if (link) {
-                                adWindow.location.href = link; // Tenta redirecionar a janela do anúncio
-                            } else {
-                                showNotification("Link de Assistir não encontrado para o ep " + ep);
-                            }
-                        }
-                    }
-                }, 10000);
-            }, 1500);
-        }
-
-        // EVENTO DE CLIQUE UNIFICADO
-        document.addEventListener('click', e => {
-            const btn = e.target.closest('.ep-btn');
-            if (!btn) return;
-
-            e.stopPropagation();
-            const ep = btn.closest('.episode-item').dataset.ep;
-            const action = btn.dataset.action;
-
-            currentEpisode = ep;
-            updateActiveEpisode(ep);
-
-            if (action === 'download' && downloaded.includes(ep)) {
-                pendingDownloadEp = ep;
-                redownloadModal.classList.add('show');
+            if (!slideshowContainer || !notification || !themeToggle || !episodesMenu || !episodesMenuList || !episodesMenuOverlay || !infoCarousel || !infoSlidesWrapper || !carouselTitle) {
+                console.error('Elementos essenciais não encontrados');
                 return;
             }
+            
+            // Variável com o link de propaganda global.
+            const GLOBAL_AD_URL = "https://firefaucet.win/"; // Item 6
+            const EPISODE_AD_IMAGE_URL = "https://postimg.cc/R6K3pXzk/1a899cee"; // Mantida se for usada em outro lugar, mas ignorada abaixo
 
-            abrirAnuncio(action, ep);
-        });
+            const config = {
+                series: [
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 1 - Renascimento",
+    "duration": "23 minutos",
+    "synopsis": "O brilhante estudante Light Yagami encontra o Death Note, um caderno de um Shinigami que permite matar qualquer pessoa cujo nome seja escrito nele.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1tI7_aQpxp3tCXn8qPntzL6hgBjsEwS4e/view",
+    "adUrl": "https://www.xvideos.com/video.okiftdh8bdb/naomi_russell_offre_son_cul_parfait_a_un_chanceux_qui_en_profite_bien_video_complete_" 
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 2 - Confronto",
+    "duration": "23 minutos",
+    "synopsis": "Enquanto criminosos morrem globalmente, L, o maior detetive do mundo, se junta à polícia japonesa para encontrar Kira. Light desafia L na TV.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1aXWua0ueygwP5cJz1OyXFRhiVoV7VXcV/view",
+    "adUrl": "https://ad.exemplo.com/ep-02"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 3 - Negociações",
+    "duration": "23 minutos",
+    "synopsis": "Ryuk, o Shinigami, informa Light que está sendo seguido por agentes do FBI. Light elabora um plano para eliminá-los, mas L se aproxima.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1djjUqe3aMHmZbSB7DlzqVxfI60S-gV5h/view",
+    "adUrl": "https://ad.exemplo.com/ep-03"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 4 - Perseguição",
+    "duration": "23 minutos",
+    "synopsis": "Light usa a agente do FBI Naomi Misora para obter os nomes dos outros agentes infiltrados no Japão e executa um plano para eliminar todos.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1jRuazHWSw0aOaZf7tX4kkPqpe75YfxD1/view",
+    "adUrl": "https://ad.exemplo.com/ep-04"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 5 - Táticas",
+    "duration": "23 minutos",
+    "synopsis": "L coloca câmeras e microfones nas casas dos principais suspeitos, incluindo Light. Light percebe a armadilha e planeja como continuar os assassinatos.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1rWC17ap_w_p83__Uk2-p_EQQq9i4NdxO/view",
+    "adUrl": "https://ad.exemplo.com/ep-05"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 6 - Desvendando",
+    "duration": "23 minutos",
+    "synopsis": "Light executa seu plano para enganar as câmeras, mantendo um comportamento 'perfeito' enquanto continua a usar o Death Note.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1fh7lAomYKGb4b86I0MwsefBLGAzI5yPU/view",
+    "adUrl": "https://ad.exemplo.com/ep-06"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 7 - Nublado",
+    "duration": "23 minutos",
+    "synopsis": "L remove as câmeras, mas ainda está desconfiado de Light. O caso Kira começa a tomar proporções internacionais.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1U3XTsXfe_cVB7jt6zoZckZ5MKEpIyQjP/view",
+    "adUrl": "https://ad.exemplo.com/ep-07"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 8 - Glare",
+    "duration": "23 minutos",
+    "synopsis": "Light se inscreve e é aceito na Universidade To-Oh, a mesma universidade onde L, sob um pseudônimo, planeja estudar.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1aj31lf4HAnPGgX2R0M2ERGPw7JCBB8m2/view",
+    "adUrl": "https://ad.exemplo.com/ep-08"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 9 - Encontro",
+    "duration": "23 minutos",
+    "synopsis": "Light e L se encontram pela primeira vez. L revela sua verdadeira identidade para Light, propondo que trabalhem juntos no caso Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1XlEzW5rvseBu9GsdUBH4JIvGRfixFsQP/view",
+    "adUrl": "https://ad.exemplo.com/ep-09"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 10 - Dúvida",
+    "duration": "23 minutos",
+    "synopsis": "L continua a testar Light, jogando um jogo de xadrez psicológico. Um Segundo Kira surge na TV, anunciando que tem os Olhos de Shinigami.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1O0LwCUMcTxxPlxWgDSw4nNYGlqQNewCu/view",
+    "adUrl": "https://ad.exemplo.com/ep-10"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 11 - Assalto",
+    "duration": "23 minutos",
+    "synopsis": "O Segundo Kira (Misa Amane) envia fitas de vídeo para a TV Sakura, forçando a Força-Tarefa e L a agir para capturá-la.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1WGuPuAMZOWa30Mvx7sGnLCxn9j8xZ4ZH/view",
+    "adUrl": "https://ad.exemplo.com/ep-11"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 12 - Amor",
+    "duration": "23 minutos",
+    "synopsis": "Light encontra Misa Amane, o Segundo Kira, que tem os Olhos de Shinigami e se apaixona por ele. Ela se oferece para ajudá-lo a matar L.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1y1c1JXxB7L5F6kJO7x7oZyvvgDph5rg2/view",
+    "adUrl": "https://ad.exemplo.com/ep-12"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 13 - Confissão",
+    "duration": "23 minutos",
+    "synopsis": "Misa é capturada e torturada por L, que suspeita fortemente de que ela seja o Segundo Kira. Light elabora um plano arriscado para se proteger.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/15LKSnOJ7B3NaWDmVvvzrGkmmGaQoghs2/view",
+    "adUrl": "https://ad.exemplo.com/ep-13"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 14 - Amigo",
+    "duration": "23 minutos",
+    "synopsis": "Light renuncia ao seu Death Note para perder suas memórias. L o coloca sob custódia e sob constante vigilância para testar sua inocência.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1YeVnLi024hDMVug6IFi3hWYIYLHWWA9N/view",
+    "adUrl": "https://ad.exemplo.com/ep-14"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 15 - Aposta",
+    "duration": "23 minutos",
+    "synopsis": "Um novo Kira, que mata por dinheiro, surge no Japão, forçando L a libertar Light e Misa para ajudá-lo a provar sua inocência e encontrar o novo assassino.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1prGrwMkTR0e9YrjmM7tYfXz7lzy3Tlsq/view",
+    "adUrl": "https://ad.exemplo.com/ep-15"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 16 - Decisão",
+    "duration": "23 minutos",
+    "synopsis": "A Força-Tarefa e L descobrem que o novo Kira está ligado ao Grupo Yotsuba. Eles planejam uma operação para se infiltrar no grupo e descobrir a identidade de Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/12Fv-tTxPhesWeTvbpdUybnE5mJLnWplC/view",
+    "adUrl": "https://ad.exemplo.com/ep-16"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 17 - Execução",
+    "duration": "23 minutos",
+    "synopsis": "A investigação se concentra em Higuchi. A Força-Tarefa e L armam uma complexa armadilha para capturar o Kira Yotsuba.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/185qtfmE4yrWUXoVpfj3zHHHDisvO9jX6/view",
+    "adUrl": "https://ad.exemplo.com/ep-17"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 18 - Aliado",
+    "duration": "23 minutos",
+    "synopsis": "Higuchi é capturado. Light toca o Death Note e recupera todas as suas memórias de ser Kira, continuando seu plano mestre.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1e50Rod4XtqJo_ZjK9olR3WwBYljs9F09/view",
+    "adUrl": "https://ad.exemplo.com/ep-18"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 19 - Matsuda",
+    "duration": "23 minutos",
+    "synopsis": "Matsuda quase morre durante a captura de Higuchi. A Força-Tarefa estuda o Death Note, enquanto Light manipula Misa para obter o caderno de Rem.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1uPoQSplhIfFiQHcnW3PTV3nx8Ov4m7Eo/view",
+    "adUrl": "https://ad.exemplo.com/ep-19"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 20 - Provisório",
+    "duration": "23 minutos",
+    "synopsis": "Light convence Rem a matar L para proteger Misa, sabendo que isso resultará na morte da Shinigami. Ele está a um passo da vitória.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1oDud7g9NCsT66WKu4qGjLwBCot6EExX1/view",
+    "adUrl": "https://ad.exemplo.com/ep-20"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 21 - Atuação",
+    "duration": "23 minutos",
+    "synopsis": "L e Watari morrem subitamente. Rem se transforma em areia. Light assume o papel de L, tornando-se o líder da investigação Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/154FGAFMSN-4bKZRaH_20ELW3mL6ejIZJ/view",
+    "adUrl": "https://ad.exemplo.com/ep-21"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 22 - Orientação",
+    "duration": "23 minutos",
+    "synopsis": "Cinco anos se passam. Light, como 'L', comanda a Força-Tarefa. Dois jovens prodígios, Near e Mello, sucessores de L, surgem para caçar Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1MeX89zd_mo37_bKSXJnQMD9RQRM98qPo/view",
+    "adUrl": "https://ad.exemplo.com/ep-22"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 23 - Frenesi",
+    "duration": "23 minutos",
+    "synopsis": "Mello, trabalhando com a Máfia, sequestra Sayu Yagami, irmã de Light, exigindo o Death Note em troca. O caso Kira ganha nova intensidade.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1CTb-WoVDjgN3u6ZSbzCmaMRLn4-yfhAo/view",
+    "adUrl": "https://ad.exemplo.com/ep-23"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 24 - Reavivamento",
+    "duration": "23 minutos",
+    "synopsis": "O pai de Light, Soichiro Yagami, decide fazer o trato dos Olhos de Shinigami para recuperar o caderno e resgatar Sayu das mãos da Máfia.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1EHW9Tu-DuoNWcQywSJJ4haiDNX7oPJqg/view",
+    "adUrl": "https://ad.exemplo.com/ep-24"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 25 - Silêncio",
+    "duration": "23 minutos",
+    "synopsis": "Soichiro Yagami morre após a missão de resgate, revelando que Light não é Kira. Light usa sua morte para desviar as suspeitas de Near.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1Vfr9f_SlSBGKyRGjsvLhku7VKjLsTHdA/view",
+    "adUrl": "https://ad.exemplo.com/ep-25"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 26 - Renovação",
+    "duration": "23 minutos",
+    "synopsis": "O caso Kira se acalma, mas Near e Mello continuam a investigação separadamente. Near desconfia das regras falsas do Death Note.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1jRxmCfNyEmY8tV6uqcBMRJ8ImlHWAHkp/view",
+    "adUrl": "https://ad.exemplo.com/ep-26"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 27 - Abdução",
+    "duration": "23 minutos",
+    "synopsis": "Mello sequestra Takada, uma porta-voz de Kira, para pressionar Light e Near. Light tem que agir rápido para evitar que seus planos sejam expostos.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/17LnFmasZnUE884_glD2Mo9dKfxlrBavj/view",
+    "adUrl": "https://ad.exemplo.com/ep-27"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 28 - Impaciência",
+    "duration": "23 minutos",
+    "synopsis": "Light usa um pedaço do Death Note escondido para matar Takada e Mello, eliminando ambos os sucessores de L e garantindo sua vitória aparente.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1-JMkDqRKtmfrn39fwweiERYgqmHR94ci/view",
+    "adUrl": "https://ad.exemplo.com/ep-28"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 29 - Pai",
+    "duration": "23 minutos",
+    "synopsis": "Near propõe um encontro com Light e a Força-Tarefa japonesa para expor Kira. Light prepara seu seguidor, Teru Mikami (o Quarto Kira), para o confronto.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1p7V67_tByPK5okr0mgeIx019FVeX_a9s/view",
+    "adUrl": "https://ad.exemplo.com/ep-29"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 30 - Justiça",
+    "duration": "23 minutos",
+    "synopsis": "Mikami, o fanático seguidor de Kira, é instruído a usar o Death Note falso no encontro. Aizawa e a Força-Tarefa desconfiam cada vez mais de Light.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1WblpN4nvwDuRtQbeDLTD20IYsDpme0_X/view",
+    "adUrl": "https://ad.exemplo.com/ep-30"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 31 - Transferência",
+    "duration": "23 minutos",
+    "synopsis": "O confronto se aproxima. Near revela que Mikami está sendo vigiado. Mikami decide agir por conta própria e ir atrás de Takada.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/13KcxOEZYqD1xa3RWcMkSpWCZ-Xc0qe9I/view",
+    "adUrl": "https://ad.exemplo.com/ep-31"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 32 - Seleção",
+    "duration": "23 minutos",
+    "synopsis": "Mikami é exposto por Near e a Força-Tarefa. Light acredita que venceu, mas o plano de Near para trocar os Death Notes está em vigor.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1Sy-KniBY441POvCC90vjpsj1Mf25rweL/view",
+    "adUrl": "https://ad.exemplo.com/ep-32"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 33 - Desprezo",
+    "duration": "23 minutos",
+    "synopsis": "O encontro final acontece no armazém. Light e Near se confrontam. Mikami chega para escrever os nomes dos agentes no caderno.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1rb9q50LipKwh8mRmWLZnxUhurLRi3QQj/view",
+    "adUrl": "https://ad.exemplo.com/ep-33"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 34 - Vigilância",
+    "duration": "23 minutos",
+    "synopsis": "Light aguarda o momento da morte dos agentes. Near revela que trocou o Death Note de Mikami por uma cópia, expondo Light como Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1fp-UIW1isyCMLjAp8U4OTCZLYVh2qtF7/view",
+    "adUrl": "https://ad.exemplo.com/ep-34"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 35 - Malícia",
+    "duration": "23 minutos",
+    "synopsis": "Pego na armadilha de Near, Light perde o controle e tenta desesperadamente escrever o nome de Near. Matsuda atira em Light.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1rWGLMsgYmiAhHoPPDFA11bGOXsDTPqID/view",
+    "adUrl": "https://ad.exemplo.com/ep-35"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 36 - 1.28",
+    "duration": "23 minutos",
+    "synopsis": "Gravemente ferido, Light foge do armazém. Near observa enquanto Light, enfraquecido, tenta escapar de seu destino.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1xlpvQqDceyA29PFtyWKx-s9Ks79lH2_m/view",
+    "adUrl": "https://ad.exemplo.com/ep-36"
+  },
+  {
+    "title": "Death Note Legendado",
+    "episode": "Ep. 37 - Novo Mundo",
+    "duration": "23 minutos",
+    "synopsis": "Light encontra Ryuk em uma escadaria abandonada. Ryuk cumpre sua promessa e escreve o nome de Light no Death Note, encerrando a saga de Kira.",
+    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
+    "link": "https://drive.google.com/file/d/1nDYqw9ZKj885gfQw8785W9fZj9QjuFki/view",
+    "adUrl": "https://ad.exemplo.com/ep-37"
+  }
+],
+                swipeThreshold: 100,
+            };
+            
+            let state = {
+                currentSlide: 0,
+                isDraggingSlides: false,
+                startX: 0,
+                currentX: 0,
+                lastTouchTime: 0,
+                isAdNext: true,
+                isWatchNowBlocked: false,
+                isEpisodesMenuOpen: false,
+                lastWatchedEpisode: parseInt(localStorage.getItem('lastWatchedEpisode')) || null
+            };
 
-        // Confirma redownload
-        confirmRedownload.onclick = () => {
-            redownloadModal.classList.remove('show');
-            abrirAnuncio('download', pendingDownloadEp);
-        };
+            let elements = {
+                slidesWrapper: document.getElementById('slidesWrapper'),
+                episodesMenu: episodesMenu,
+                episodesMenuList: episodesMenuList,
+                episodesMenuOverlay: episodesMenuOverlay,
+                infoCarousel: infoCarousel,
+                infoSlidesWrapper: infoSlidesWrapper,
+                carouselTitle: carouselTitle
+            };
 
-        cancelRedownload.onclick = () => {
-            redownloadModal.classList.remove('show');
-            pendingDownloadEp = null;
-        };
+            /* Implementação do Ad de Clique Global (Item 6) */
+            // Intervalo de 23 minutos em milissegundos
+            const AD_INTERVAL = 23 * 60 * 1000; 
+            let lastAdRedirect = localStorage.getItem('lastAdRedirect') ? parseInt(localStorage.getItem('lastAdRedirect')) : 0;
 
-        // Anúncio a cada 10 minutos
-        document.body.addEventListener('click', (e) => {
-            if (e.target.closest('.ep-btn')) return;
-            const now = Date.now();
-            if (now - lastAdClick > 600000) {
-                lastAdClick = now;
-                localStorage.setItem('lastAdClick', now);
-                abrirAnuncio('interstitial', 0);
+            function handleGlobalClick(e) {
+                const now = Date.now();
+                // Exclui elementos interativos para não bloquear a funcionalidade principal.
+                const isInteractiveElement = e.target.closest('a, button, input, iframe, .top-bar__icon, .slide'); // Alterado para a classe do novo cabeçalho
+                
+                if (!isInteractiveElement && (now - lastAdRedirect >= AD_INTERVAL)) {
+                    
+                    lastAdRedirect = now;
+                    localStorage.setItem('lastAdRedirect', now);
+                    
+                    showNotification('Redirecionando para propaganda...');
+
+                    // Abre a propaganda em uma nova aba
+                    const win = window.open(GLOBAL_AD_URL, '_blank');
+                    if (!win) {
+                        console.error('Window.open blocked:', GLOBAL_AD_URL);
+                        showNotification('Pop-up bloqueado. Permita pop-ups para ver a propaganda.');
+                    }
+                }
             }
+            /* Fim Ad de Clique Global */
+
+            function initialize() {
+                if (!elements.slidesWrapper || !elements.episodesMenu || !elements.episodesMenuList || !elements.episodesMenuOverlay || !elements.infoCarousel || !elements.infoSlidesWrapper || !elements.carouselTitle) {
+                    console.error('Elementos do carrossel ou menu não encontrados');
+                    return;
+                }
+                createCarousels();
+                createEpisodesMenu();
+                setupEventListeners();
+                triggerSlideAnimation();
+            }
+
+            function triggerSlideAnimation() {
+                const activeSlide = elements.slidesWrapper.querySelector('.slide.active');
+                if (activeSlide) {
+                    activeSlide.classList.add('animate-hint');
+                    showNotification('Deslize para o próximo ou anterior episódio');
+                    setTimeout(() => {
+                        activeSlide.classList.remove('animate-hint');
+                    }, 4000);
+                }
+            }
+
+            function createCarousels() {
+                elements.slidesWrapper.innerHTML = `
+                    <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
+                    <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+                `;
+                elements.infoSlidesWrapper.innerHTML = '';
+
+                const items = config.series;
+
+                items.forEach((item, index) => {
+                    // Main slides carousel (images only)
+                    const slide = document.createElement('div');
+                    slide.className = 'slide';
+                    slide.dataset.index = index;
+                    slide.setAttribute('aria-label', `Episódio ${item.episode}: ${item.title}`);
+                    slide.innerHTML = `
+                        <img src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/360x270?text=Imagem+Indisponível'">
+                    `;
+                    elements.slidesWrapper.appendChild(slide);
+
+                    // Info carousel
+                    const nextIndex = (index + 1) % items.length;
+                    const nextEpisode = items[nextIndex].episode.replace('Ep. ', '');
+                    const infoSlide = document.createElement('div');
+                    infoSlide.className = 'info-slide';
+                    infoSlide.dataset.index = index;
+                    
+                    // MUDANÇA: Todos os botões no mesmo container, na ordem: Assistir agora - Próximo ep - reportar erro - episódios (Item 1)
+                    infoSlide.innerHTML = `
+                        <div class="slide-content">
+                            <div class="title">${item.title.toLowerCase()}</div>
+                            <div class="episode">${item.episode}</div>
+                            <div class="duration">${item.duration}</div>
+                            <div class="synopsis">${item.synopsis || 'Sinopse indisponível'}</div>
+                            <div class="actions">
+                                <button class="action-button watch-now" aria-label="Assistir ${item.title} ${item.episode} agora" data-index="${index}">▶ Assistir agora</button>
+                                <button class="action-button next-ep" aria-label="Ir para o próximo episódio ${nextEpisode}" data-index="${nextIndex}">Próximo Ep. ${nextEpisode}</button>
+                                <button class="action-button report-error" aria-label="Reportar erro para este episódio" data-index="${index}">⚠ Reportar Erro</button>
+                                <button class="action-button episodes" aria-label="Ver lista de episódios">📑 Episódios</button>
+                            </div>
+                        </div>
+                    `;
+                    elements.infoSlidesWrapper.appendChild(infoSlide);
+                });
+
+                // Adicionar/Atualizar click handlers
+                elements.infoSlidesWrapper.querySelectorAll('.watch-now').forEach(button => {
+                    button.onclick = () => watchNow(parseInt(button.dataset.index));
+                });
+                elements.infoSlidesWrapper.querySelectorAll('.next-ep').forEach(button => {
+                    button.onclick = () => goToSlide(parseInt(button.dataset.index));
+                });
+                elements.infoSlidesWrapper.querySelectorAll('.report-error').forEach(button => {
+                    button.onclick = () => reportError(parseInt(button.dataset.index));
+                });
+                elements.infoSlidesWrapper.querySelectorAll('.episodes').forEach(button => {
+                    button.onclick = openEpisodesMenu;
+                });
+                
+                updateSlides();
+                updateInfoSlide(state.currentSlide);
+            }
+
+            function createEpisodesMenu() {
+                elements.episodesMenuList.innerHTML = '';
+                config.series.forEach((item, index) => {
+                    const episodeButton = document.createElement('button');
+                    episodeButton.className = `episodes-menu__item ${index === state.lastWatchedEpisode ? 'last-watched' : ''}`;
+                    episodeButton.dataset.index = index;
+                    episodeButton.textContent = `${item.episode}: ${item.synopsis.substring(0, 50)}${item.synopsis.length > 50 ? '...' : ''}`;
+                    episodeButton.setAttribute('aria-label', `Selecionar ${item.episode}`);
+                    episodeButton.onclick = () => selectEpisode(index);
+                    elements.episodesMenuList.appendChild(episodeButton);
+                });
+            }
+
+            function setupEventListeners() {
+                elements.slidesWrapper.addEventListener('click', handleSlideClick);
+                elements.slidesWrapper.addEventListener('touchstart', touchStartSlides, { passive: true });
+                elements.slidesWrapper.addEventListener('touchmove', touchMoveSlides, { passive: false });
+                elements.slidesWrapper.addEventListener('touchend', touchEndSlides, { passive: true });
+                elements.slidesWrapper.addEventListener('wheel', handleWheel, { passive: true });
+                document.addEventListener('keydown', handleKeyboardNavigation);
+                elements.episodesMenuOverlay.addEventListener('click', closeEpisodesMenu);
+
+                // NOVO: Adiciona o listener para o Ad de Clique Global (Item 6)
+                // Usando o elemento raiz e a fase de captura para pegar o clique antes de outros elementos.
+                document.documentElement.addEventListener('click', handleGlobalClick, { capture: true });
+                document.documentElement.addEventListener('touchstart', handleGlobalClick, { capture: true });
+            }
+
+            function handleSlideClick(e) {
+                const slide = e.target.closest('.slide');
+                if (!slide) return;
+                const index = parseInt(slide.dataset.index);
+                e.stopPropagation();
+                e.preventDefault();
+                goToSlide(index);
+            }
+
+            function handleKeyboardNavigation(e) {
+                if (e.key === 'ArrowLeft') prevSlide();
+                else if (e.key === 'ArrowRight') nextSlide();
+            }
+
+            function handleWheel(e) {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                if (e.deltaX > 0) nextSlide();
+                else prevSlide();
+            }
+
+            let lastTouchMoveSlides = 0;
+            function touchStartSlides(e) {
+                state.isDraggingSlides = true;
+                state.startX = e.touches[0].clientX;
+                state.lastTouchTime = Date.now();
+                updateSwipeIndicators();
+            }
+
+            function touchMoveSlides(e) {
+                if (!state.isDraggingSlides) return;
+                const now = Date.now();
+                if (now - lastTouchMoveSlides < 16) return;
+                lastTouchMoveSlides = now;
+                state.currentX = e.touches[0].clientX;
+                const diffX = state.startX - state.currentX;
+                const diffY = Math.abs(e.touches[0].clientY - e.touches[0].clientY);
+                if (diffY > Math.abs(diffX)) {
+                    e.preventDefault();
+                    return;
+                }
+                e.preventDefault();
+                const slides = elements.slidesWrapper.querySelectorAll('.slide');
+                const maxTranslate = 130;
+                slides.forEach((slide, i) => {
+                    const isActive = i === state.currentSlide;
+                    const isPrev = i === (state.currentSlide - 1 + config.series.length) % config.series.length;
+                    const isNext = i === (state.currentSlide + 1) % config.series.length;
+                    let translateX = 0;
+                    let scale = 0.9;
+                    let opacity = 0.4;
+
+                    if (isPrev) {
+                        translateX = -maxTranslate + (diffX / 1.5);
+                        opacity = Math.min(1, 0.4 + Math.abs(diffX / 300));
+                        scale = Math.min(0.9, 0.9 + (Math.abs(diffX) / 1000));
+                    } else if (isNext) {
+                        translateX = maxTranslate - (diffX / 1.5);
+                        opacity = Math.min(1, 0.4 + Math.abs(diffX / 300));
+                        scale = Math.min(0.9, 0.9 + (Math.abs(diffX) / 1000));
+                    } else if (isActive) {
+                        translateX = diffX / 5;
+                        opacity = 1;
+                        scale = 1.15;
+                    }
+
+                    slide.style.transform = `translateX(${translateX}%) scale(${scale})`;
+                    slide.style.opacity = opacity;
+                });
+                requestAnimationFrame(updateSwipeIndicators);
+            }
+
+            function touchEndSlides(e) {
+                if (!state.isDraggingSlides) return;
+                const diffX = state.startX - state.currentX;
+                const timeElapsed = Date.now() - state.lastTouchTime;
+                if (Math.abs(diffX) > config.swipeThreshold && timeElapsed > 100) {
+                    if (diffX > 0) nextSlide();
+                    else prevSlide();
+                } else if (Math.abs(diffX) > 10 && timeElapsed <= 100) { // Flick
+                    if (diffX > 0) nextSlide();
+                    else prevSlide();
+                }
+                state.isDraggingSlides = false;
+                state.startX = 0;
+                state.currentX = 0;
+                updateSlides();
+                updateSwipeIndicators();
+            }
+
+            function updateSwipeIndicators() {
+                const indicators = elements.slidesWrapper.querySelectorAll('.swipe-indicator');
+                indicators.forEach(indicator => {
+                    indicator.style.opacity = state.isDraggingSlides ? '1' : '0';
+                });
+            }
+
+            function updateSlides() {
+                requestAnimationFrame(() => {
+                    const slides = elements.slidesWrapper.querySelectorAll('.slide');
+                    const items = config.series;
+
+                    // Update carousel title
+                    elements.carouselTitle.textContent = `Death Note ${items[state.currentSlide].episode.replace('Ep. ', '')}`;
+
+                    slides.forEach((slide, i) => {
+                        slide.classList.remove('active', 'prev', 'next');
+                        if (i === state.currentSlide) {
+                            slide.classList.add('active');
+                            slide.style.transform = 'translateX(0) scale(1.15)';
+                            slide.style.opacity = '1';
+                            slide.style.width = '306px';
+                            slide.style.height = '229.5px';
+                        } else {
+                            if (i === (state.currentSlide - 1 + items.length) % items.length) {
+                                slide.classList.add('prev');
+                                slide.style.transform = 'translateX(-130%) scale(0.9)';
+                            } else if (i === (state.currentSlide + 1) % items.length) {
+                                slide.classList.add('next');
+                                slide.style.transform = 'translateX(130%) scale(0.9)';
+                            }
+                            slide.style.opacity = '0.4';
+                            slide.style.width = '204px';
+                            slide.style.height = '153px';
+                        }
+                    });
+
+                    updateInfoSlide(state.currentSlide);
+                });
+            }
+
+            function updateInfoSlide(index) {
+                const infoSlides = elements.infoSlidesWrapper.querySelectorAll('.info-slide');
+                infoSlides.forEach((slide, i) => {
+                    slide.classList.toggle('active', i === index);
+                });
+            }
+
+            function nextSlide() {
+                state.currentSlide = (state.currentSlide + 1) % config.series.length;
+                updateSlides();
+            }
+
+            function prevSlide() {
+                state.currentSlide = (state.currentSlide - 1 + config.series.length) % config.series.length;
+                updateSlides();
+            }
+
+            function goToSlide(index) {
+                state.currentSlide = index;
+                updateSlides();
+            }
+
+            function toggleWatchNowButtons(enabled) {
+                const buttons = document.querySelectorAll('.watch-now');
+                buttons.forEach(button => {
+                    button.disabled = !enabled;
+                });
+            }
+
+            // FUNÇÃO watchNow ADAPTADA COM RASTREAMENTO FIREBASE (Item 4 e 5)
+            function watchNow(index) {
+                const item = config.series[index];
+                if (!item || !item.link || state.isWatchNowBlocked) {
+                    showNotification('Erro ao acessar o episódio. Tente novamente.');
+                    return;
+                }
+                state.isWatchNowBlocked = true;
+                toggleWatchNowButtons(false);
+
+                // 1. Salvar último episódio assistido
+                state.lastWatchedEpisode = index;
+                localStorage.setItem('lastWatchedEpisode', index);
+                createEpisodesMenu(); // Atualiza menu
+
+                const message = state.isAdNext 
+                    ? 'Você será redirecionado para uma propaganda. Volte para assistir ao vídeo.'
+                    : 'Você será redirecionado para o vídeo do episódio no Google Drive.';
+                showNotification(message);
+
+                // 2. RASTREAMENTO: Acesso (início)
+                recordUserInteraction('Acesso', index);
+
+                setTimeout(() => {
+                    try {
+                        const adUrl = item.adUrl || GLOBAL_AD_URL; 
+                        const url = state.isAdNext ? adUrl : item.link;
+                        
+                        if (state.isAdNext) {
+                             // 3. RASTREAMENTO: Propaganda Visualizada
+                            recordUserInteraction('Propaganda Visualizada', index, adUrl);
+                        }
+                        
+                        const win = window.open(url, '_blank');
+                        if (!win) {
+                            showNotification('Pop-up bloqueado. Permita pop-ups e tente novamente.');
+                        } 
+                        state.isAdNext = !state.isAdNext;
+                    } catch (e) {
+                        console.error('Redirect error:', e);
+                        showNotification('Erro ao redirecionar. Tente novamente.');
+                    }
+
+                    const unlockDelay = state.isAdNext ? 2000 : 0;
+                    setTimeout(() => {
+                        state.isWatchNowBlocked = false;
+                        toggleWatchNowButtons(true);
+                    }, unlockDelay);
+                }, 4000);
+            }
+
+            // FUNÇÃO reportError ADAPTADA COM RASTREAMENTO FIREBASE (Item 5)
+            function reportError(index) {
+                const item = config.series[index];
+                const message = encodeURIComponent(`Reporte um erro para o episódio ${item.episode} de ${item.title}`);
+                const whatsappUrl = `https://api.whatsapp.com/send?phone=5535984072446&text=${message}`;
+                window.open(whatsappUrl, '_blank');
+                showNotification('Redirecionando para reportar erro no WhatsApp!');
+
+                // RASTREAMENTO: Reportar Erro Acionado
+                recordUserInteraction('Reportar Erro Acionado', index);
+            }
+
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 4000);
+            }
+
+            function openEpisodesMenu() {
+                state.isEpisodesMenuOpen = true;
+                elements.episodesMenu.classList.add('open');
+                elements.episodesMenuOverlay.classList.add('active');
+            }
+
+            function closeEpisodesMenu() {
+                state.isEpisodesMenuOpen = false;
+                elements.episodesMenu.classList.remove('open');
+                elements.episodesMenuOverlay.classList.remove('active');
+            }
+
+            function selectEpisode(index) {
+                goToSlide(index);
+                closeEpisodesMenu();
+            }
+
+            function toggleTheme() { // Função local para o carrossel, a global está no novo script do cabeçalho
+                const currentTheme = body.dataset.theme;
+                body.dataset.theme = currentTheme === 'light' ? 'dark' : 'light';
+            }
+
+            initialize();
         });
-
-        function updateActiveEpisode(ep) {
-            document.querySelectorAll('.episode-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.ep == ep);
-            });
-        }
-
-        // closeUnavailable.onclick = () => unavailableModal.classList.remove('show'); // Removido
-        window.onclick = e => {
-            if (e.target.classList.contains('modal')) e.target.classList.remove('show');
-        };
-
-        themeToggle.onclick = () => {
-            const isLight = document.body.dataset.theme === 'light';
-            document.body.dataset.theme = isLight ? 'dark' : 'light';
-            themeToggle.innerHTML = `<i class="fas fa-${isLight ? 'moon' : 'sun'}"></i> Tema`;
-        };
-
-        // Inicialização
-        document.body.dataset.theme = 'light';
-        themeToggle.innerHTML = '<i class="fas fa-sun"></i> Tema';
-        document.querySelector('[data-ep="1"]').classList.add('active');
     </script>
 </body>
 </html>
+
