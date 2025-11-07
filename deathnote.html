@@ -10,9 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
 
     <style>
-        /* INÍCIO DO CSS UNIFICADO */
+          /* INÍCIO DO CSS UNIFICADO */
         html {
             scroll-behavior: smooth;
+            /* Garante o ponto de partida do zoom e define a base do REM */
+            font-size: 16px; 
+        }
+;
         }
         :root {
             --primary-gradient: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
@@ -95,15 +99,17 @@
             scroll-behavior: smooth;
         }
 
-        .zoom-container {
+               .zoom-container {
             width: 100%;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transform-origin: center center;
-            transition: transform 0.3s ease;
+            /* Não é mais necessário, pois o zoom é feito no <html> */
+            /* transform-origin: center center; */ 
+            /* transition: transform 0.3s ease; */ 
         }
+
 
         /* Header e Menu */
         .header-menu { width: 100%; }
@@ -301,74 +307,74 @@
             font-weight: 500;
             font-size: 0.95rem;
         }
+             /* ... (seu CSS anterior) ... */
+        
         /* Carrossel de Imagens */
         .slideshow-container {
-            max-width: 800px;
-            width: 95%;
-            margin: var(--spacing-section) auto;
-            position: relative;
-            overflow: hidden;
-            padding: 12px;
-            background: var(--surface);
-            box-shadow: 0 6px 30px var(--shadow-color);
+            /* ... (manter o restante) ... */
             z-index: 10;
         }
-        .carousel-title {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            text-align: center;
-            letter-spacing: 0.4px;
-        }
+        /* ... (manter o carousel-title) ... */
+        
         .slides-wrapper {
-            height: 340px;
+            height: 21.25rem; /* 340px */
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 40px;
+            gap: 2.5rem;    /* 40px */
             position: relative;
-            padding: 0 25px;
+            /* CORREÇÃO: Converter 25px para 1.5625rem para consistência */
+            padding: 0 1.5625rem; 
             touch-action: pan-y;
             overflow: hidden;
         }
         .slide {
             position: absolute;
-            transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out, width 0.6s ease-in-out, height 0.6s ease-in-out;
-            width: 204px;
-            height: 153px;
+            /* OTIMIZAÇÃO: Reduzir a transição para apenas 'transform' e 'opacity' (mais performático) */
+            transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+            width: 12.75rem; /* 204px */
+            height: 9.5625rem; /* 153px */
             opacity: 0.4;
             pointer-events: none;
             cursor: grab;
             overflow: hidden;
             box-shadow: 0 2px 12px var(--shadow-color);
-            will-change: transform, opacity, width, height;
+            /* OTIMIZAÇÃO: Reduzir 'will-change' para corresponder à 'transition' */
+            will-change: transform, opacity; 
             z-index: 5;
         }
-        .slide:active {
-            cursor: grabbing;
-        }
+        /* ... (manter o slide:active) ... */
         .slide.active {
             transform: translateX(0) scale(1.15);
             z-index: 20;
             opacity: 1;
             pointer-events: all;
-            width: 306px;
-            height: 229.5px;
+            width: 19.125rem;  /* 306px */
+            height: 14.34375rem; /* 229.5px */
         }
-        .slide.prev {
-            transform: translateX(-130%) scale(0.9);
-            z-index: 10;
-            opacity: 0.4;
+        
+        /* ... (você deve garantir que .slide.prev e .slide.next estejam definidos com transform e opacity) ... */
+        
+        /* ... (Ajustar as Media Queries também) ... */
+        @media (max-width: 768px) {
+            /* ... (outras regras de media query) ... */
+            .slides-wrapper {
+                height: 18.0625rem; /* 289px */
+                gap: 1.59375rem; /* 25.5px */
+                padding: 0 0.75rem; /* 12px */
+            }
+            .slide {
+                width: 10.625rem; /* 170px */
+                height: 7.96875rem; /* 127.5px */
+            }
+            .slide.active {
+                width: 15.9375rem; /* 255px */
+                height: 11.953125rem; /* 191.25px */
+            }
+            /* ... (outras regras de media query) ... */
         }
-        .slide.next {
-            transform: translateX(130%) scale(0.9);
-            z-index: 10;
-            opacity: 0.4;
-        }
-        .slide.animate-hint {
-            animation: slideHint 4s ease-in-out forwards;
-        }
+        /* ... (outras media queries) ... */
+
         @keyframes slideHint {
             0% { transform: translateX(0) scale(1.15); }
             50% { transform: translateX(-50%) scale(1.15); }
@@ -382,6 +388,7 @@
             loading: lazy;
             z-index: 6;
         }
+
         /* Carrossel de Informações */
         .info-carousel-container {
             max-width: 800px;
@@ -886,8 +893,7 @@
                 <div class="carousel-section">
                     <div class="carousel-title" id="carouselTitle">Death Note - Episódio 1</div>
                     <div class="slides-wrapper" id="slidesWrapper">
-                        <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
-                        <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+                       
                     </div>
                 </div>
             </div>
@@ -1466,8 +1472,7 @@
 
         function createCarousels() {
             elements.slidesWrapper.innerHTML = `
-                <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
-                <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+            
             `;
             elements.infoSlidesWrapper.innerHTML = '';
             const items = config.series;
@@ -1538,17 +1543,28 @@
             const mainMenu = document.getElementById('main-menu');
             const themeToggle = document.getElementById('theme-toggle');
             const body = document.body;
+            // ... dentro da função setupEventListeners()
+
             const zoomInBtn = document.getElementById('zoom-in-btn');
             const zoomOutBtn = document.getElementById('zoom-out-btn');
-            const zoomContainer = document.getElementById('zoom-container');
+            // Altera 'zoom-container' para o elemento raiz <html> para que o 'rem' seja a base
+            const rootElement = document.documentElement; // Seleciona <html>
 
             let currentScale = 1.0;
             const step = 0.1;
             const maxScale = 1.5;
             const minScale = 0.8;
+            
+            // Define o tamanho de fonte base inicial (em pixels)
+            const baseFontSize = 16; 
 
             function updateZoom() {
-                zoomContainer.style.transform = `scale(${currentScale})`;
+                // Remove o transform do zoom-container (se aplicável)
+                // zoomContainer.style.transform = `scale(1)`; // Garante que a escala antiga é removida
+                
+                // *** APLICA O ZOOM ALTERANDO O FONT-SIZE RAIZ (<html>) ***
+                rootElement.style.fontSize = `${baseFontSize * currentScale}px`; 
+                
                 showNotification(`Zoom: ${Math.round(currentScale * 100)}%`);
                 zoomInBtn.disabled = currentScale >= maxScale;
                 zoomOutBtn.disabled = currentScale <= minScale;
@@ -1568,7 +1584,11 @@
                 }
             });
 
+            // Chama updateZoom para configurar o estado inicial
             updateZoom();
+            
+// ... (continue com o restante da função)
+
 
             // Lógica do botão de busca (lupa)
             searchInput.addEventListener('input', (e) => {
@@ -1662,34 +1682,41 @@
         }
 
         function updateSlides() {
-            requestAnimationFrame(() => {
-                const slides = elements.slidesWrapper.querySelectorAll('.slide');
-                const items = config.series;
-                elements.carouselTitle.textContent = `Death Note ${items[state.currentSlide].episode.replace('Ep. ', '')}`;
-                slides.forEach((slide, i) => {
-                    slide.classList.remove('active', 'prev', 'next');
-                    if (i === state.currentSlide) {
-                        slide.classList.add('active');
-                        slide.style.transform = 'translateX(0) scale(1.15)';
-                        slide.style.opacity = '1';
-                        slide.style.width = '306px';
-                        slide.style.height = '229.5px';
-                    } else {
-                        if (i === (state.currentSlide - 1 + items.length) % items.length) {
-                            slide.classList.add('prev');
-                            slide.style.transform = 'translateX(-130%) scale(0.9)';
-                        } else if (i === (state.currentSlide + 1) % items.length) {
-                            slide.classList.add('next');
-                            slide.style.transform = 'translateX(130%) scale(0.9)';
-                        }
-                        slide.style.opacity = '0.4';
-                        slide.style.width = '204px';
-                        slide.style.height = '153px';
-                    }
-                });
-                updateInfoSlide(state.currentSlide);
-            });
-        }
+    requestAnimationFrame(() => {
+        const slides = elements.slidesWrapper.querySelectorAll('.slide');
+        const items = config.series;
+        elements.carouselTitle.textContent = `Death Note ${items[state.currentSlide].episode.replace('Ep. ', '')}`;
+        
+        slides.forEach((slide, i) => {
+            // 1. Remove todas as classes de posicionamento
+            slide.classList.remove('active', 'prev', 'next');
+            
+            // 2. Verifica se é o slide atual (ativo)
+            if (i === state.currentSlide) {
+                slide.classList.add('active');
+                // O CSS (com REM) irá aplicar os estilos corretos para o slide ativo.
+            } 
+            // 3. Verifica se é o slide anterior ou o próximo (inativo)
+            else {
+                // Lógica para determinar se é o slide anterior (prev)
+                const prevIndex = (state.currentSlide - 1 + items.length) % items.length;
+                // Lógica para determinar se é o slide seguinte (next)
+                const nextIndex = (state.currentSlide + 1) % items.length;
+
+                if (i === prevIndex) {
+                    slide.classList.add('prev');
+                } else if (i === nextIndex) {
+                    slide.classList.add('next');
+                }
+                // Os slides que não são active, prev ou next permanecem sem classes de posição,
+                // usando o estilo base de .slide (que deve ter opacity: 0.4 e width/height em REM)
+            }
+        });
+        
+        updateInfoSlide(state.currentSlide);
+    });
+  }
+
 
         function updateInfoSlide(index) {
             const infoSlides = elements.infoSlidesWrapper.querySelectorAll('.info-slide');
