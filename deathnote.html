@@ -2,167 +2,35 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="description" content="Anime I Geek">
     <title>Anime I Geek</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script type="module">
-        // Import Firebase (modular v9+)
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
-        import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js';
-        import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
-        // Importação do Firestore para o código original
-        import { addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Config Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyA9vB_anmutvZByIhKxsPJbsP0VZ7gyWB0",
-            authDomain: "sorteio-mega-sorte.firebaseapp.com",
-            projectId: "sorteio-mega-sorte",
-            storageBucket: "sorteio-mega-sorte.firebasestorage.app",
-            messagingSenderId: "776750928407",
-            appId: "1:776750928407:web:72da06deb8b97302b5c252",
-            measurementId: "G-GDZ7D30N0G"
-        };
-
-        // Inicializar
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app);
-
-        // Função de pesquisa no Firestore
-        window.searchAnimes = async (query) => {
-            if (!query.trim()) {
-                document.getElementById('result-card').style.display = 'none';
-                return;
-            }
-
-            const results = [];
-            const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-            
-            for (const letter of letters) {
-                try {
-                    const docRef = doc(db, 'pesquisa_animes', letter);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        for (const [animeKey, animeData] of Object.entries(data)) {
-                            const lowerQuery = query.toLowerCase();
-                            const lowerTitle = animeData.title ? animeData.title.toLowerCase() : '';
-                            const lowerKey = animeKey.toLowerCase();
-                            if (lowerQuery.includes('death') && lowerKey.includes('death') || 
-                                lowerTitle.includes(lowerQuery) || 
-                                lowerKey.includes(lowerQuery)) {
-                                results.push({ ...animeData, key: animeKey });
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erro na busca:', error);
-                }
-            }
-
-            // Para este exemplo, só um resultado (Death Note)
-            if (results.length > 0) {
-                displayResult(results[0]);
-                logEvent(analytics, 'search_anime', { anime: results[0].title });
-            } else {
-                document.getElementById('result-card').style.display = 'none';
-            }
-        };
-
-        // Exibir resultado no card
-        function displayResult(anime) {
-            const card = document.getElementById('result-card');
-            card.innerHTML = `
-                <div class="result-thumbnail">
-                    <i class="${anime.thumbnail_icon || 'fas fa-book'}"></i>
-                </div>
-                <div class="result-info">
-                    <h3>${anime.title}</h3>
-                    <p>${anime.episodes} episódios • ${anime.genres ? anime.genres.join(' • ') : ''}</p>
-                    <p>${anime.description || ''}</p>
-                    <a href="${anime.watch_url || '#'}" target="_blank" class="result-btn">Assistir Agora</a>
-                </div>
-            `;
-            card.style.display = 'flex';
-            card.classList.add('show');
-        }
-
-        // DOM Ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const searchInput = document.getElementById('search-input');
-            searchInput.addEventListener('input', (e) => {
-                window.searchAnimes(e.target.value);
-            });
-
-            // Resto do código (menu, tema) - igual ao anterior
-            const menuToggle = document.getElementById('menu-icon');
-            const mainMenu = document.getElementById('main-menu');
-            const themeToggle = document.getElementById('theme-toggle');
-            const body = document.body; // Adicionado para toggleTheme
-
-            menuToggle?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                mainMenu.classList.toggle('open');
-                if (mainMenu.classList.contains('open')) {
-                    setTimeout(() => searchInput.focus(), 300);
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('#main-menu') && !e.target.closest('#menu-icon')) {
-                    mainMenu.classList.remove('open');
-                }
-            });
-
-            // Função para alternar tema
-            function toggleTheme() {
-                const currentTheme = body.dataset.theme;
-                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-                body.dataset.theme = newTheme;
-                localStorage.setItem('theme', newTheme);
-            }
-
-            themeToggle?.addEventListener('click', toggleTheme);
-            // Configura o ícone do tema ao carregar
-            function updateThemeIcon() {
-                themeToggle.innerHTML = `<i class="fas ${body.dataset.theme === 'light' ? 'fa-adjust' : 'fa-adjust'}"></i>`;
-            }
-            // Adiciona listener para a mudança do atributo data-theme
-            new MutationObserver(updateThemeIcon).observe(body, { attributes: true, attributeFilter: ['data-theme'] });
-            
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.dataset.theme = savedTheme;
-            updateThemeIcon(); // Chama para garantir o ícone correto no início
-        });
-    </script>
     <style>
-        /* ESTILOS ORIGINAIS DO CARROSSEL, ADAPTADOS PARA O NOVO TEMA */
+        /* INÍCIO DO CSS UNIFICADO */
         html {
             scroll-behavior: smooth;
         }
-
         :root {
-            /* MUDANÇA: Cores Executivas - Adaptadas para o novo cabeçalho (Base do light mode) */
-            --primary-gradient: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); /* Deep Blue */
+            --primary-gradient: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
             --text-primary: #1a202c;
             --text-secondary: #4a5568;
-            --background: #f5f7fa; /* Novo fundo light */
-            --surface: rgba(0, 0, 0, 0.05); /* Superfície clara */
+            --background: #f5f7fa;
+            --surface: rgba(0, 0, 0, 0.05);
             --border: rgba(0, 0, 0, 0.1);
             --shadow-color: rgba(0, 0, 0, 0.2);
             --blur-effect: blur(12px);
             --transition: all 0.6s ease-in-out;
-            --highlight-color: #E53E3E; /* Red para Watch Now/Highlights */
+            --highlight-color: #E53E3E;
             --highlight-hover: #C53030;
-            --watch-later-color: #38A169; 
-            --watch-later-hover: #2F855A; 
-            --episodes-color: #2D3748; /* Cor principal do novo tema */
+            --watch-later-color: #38A169;
+            --watch-later-hover: #2F855A;
+            --episodes-color: #2D3748;
             --episodes-hover: #4A5568;
-            --report-error-color: #4B5563; 
+            --report-error-color: #4B5563;
             --report-error-hover: #6B7280;
             --menu-background: rgba(255, 255, 255, 0.65);
             --menu-item-background: rgba(0, 0, 0, 0.05);
@@ -174,8 +42,6 @@
             --font-size-sm: clamp(1rem, 2.5vw, 1.1rem);
             --font-size-md: clamp(1.1rem, 3vw, 1.3rem);
             --font-size-lg: clamp(1.4rem, 4vw, 1.8rem);
-
-            /* NOVAS VARIÁVEIS DO NOVO CABEÇALHO */
             --primary: #2d3748;
             --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -183,13 +49,14 @@
             --menu-bg-dark: rgba(45, 55, 72, 0.5);
             --card-bg: #ffffff;
             --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --header-bg: var(--surface);
+            --progress-bg: #edf2f7;
+            --zoom-scale: 1.0;
         }
-
         [data-theme="dark"] {
-            /* Adaptado do tema Dark do novo cabeçalho */
             --text-primary: #e2e8f0;
             --text-secondary: #a0aec0;
-            --background: #1a202c; /* Novo fundo dark */
+            --background: #1a202c;
             --surface: rgba(255, 255, 255, 0.05);
             --border: #4a5568;
             --shadow-color: rgba(0, 0, 0, 0.4);
@@ -200,8 +67,10 @@
             --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --progress-bg: #4a5568;
         }
 
+        /* Ajustes específicos do Corpo e Estrutura */
         * {
             margin: 0;
             padding: 0;
@@ -209,7 +78,6 @@
             user-select: none;
             -webkit-user-select: none;
         }
-
         body {
             font-family: 'Jura', sans-serif;
             font-weight: 400;
@@ -220,7 +88,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 65px; /* Ajustado para a altura do novo header */
             overflow-x: hidden;
             touch-action: pan-y;
             transition: background 0.3s ease, color 0.3s ease;
@@ -228,32 +95,213 @@
             scroll-behavior: smooth;
         }
 
-        /* NOVOS ESTILOS DO CABEÇALHO */
-        .header-menu { width: 100%; }
-        .header { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; z-index: 1001; box-shadow: var(--shadow); }
-        .header h1 { font-size: 1.125rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); }
-        .top-bar__section { display: flex; align-items: center; gap: 12px; }
-        .top-bar__icon { color: var(--text-primary); background: none; border: none; padding: 8px; cursor: pointer; transition: background 0.2s; border-radius: 4px; }
-        .top-bar__icon i { font-size: 1.125rem; }
-        .top-bar__icon:hover { background: var(--primary); color: white; }
-        .menu { position: fixed; top: 65px; left: 0; right: 0; width: 100%; height: 50vh; background: var(--menu-bg-light); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: translateY(-100%); transition: transform 0.4s ease; z-index: 1000; display: flex; flex-direction: column; align-items: center; padding: 20px 16px; opacity: 0; pointer-events: none; }
-        [data-theme="dark"] .menu { background: var(--menu-bg-dark); }
-        .menu.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
-        .search-container { width: 100%; max-width: 600px; position: relative; margin-bottom: 16px; }
-        .search-input { width: 100%; padding: 14px 50px 14px 16px; font-size: 1rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary); outline: none; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1); }
-        .search-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; pointer-events: none; }
-        .result-card { width: 100%; max-width: 600px; background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); display: none; flex-direction: column; gap: 12px; opacity: 0; transform: translateY(-10px); transition: all 0.4s ease; margin-top: 8px; }
-        .result-card.show { opacity: 1; transform: translateY(0); display: flex; }
-        .result-thumbnail { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--episodes-hover)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: bold; align-self: center; }
-        .result-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
-        .result-info p { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px; }
-        .result-btn { background: var(--highlight-color); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: background 0.2s; text-decoration: none; display: inline-block; text-align: center; }
-        .result-btn:hover { background: var(--highlight-hover); }
-        @media (max-width: 768px) { .search-input { padding: 12px 45px 12px 14px; font-size: 0.95rem; } .result-card { padding: 16px; gap: 10px; } .result-thumbnail { width: 60px; height: 60px; font-size: 1.4rem; } .result-info h3 { font-size: 1rem; } body { padding-top: 55px; } .menu { top: 55px; } }
-        /* FIM NOVOS ESTILOS DO CABEÇALHO */
+        .zoom-container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform-origin: center center;
+            transition: transform 0.3s ease;
+        }
 
-        /* CONTINUAÇÃO DOS ESTILOS ORIGINAIS DO CARROSSEL */
+        /* Header e Menu */
+        .header-menu { width: 100%; }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: var(--header-bg, var(--surface));
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            transition: background 0.3s ease;
+        }
+        .header h1 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+        .top-bar__section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-bar__icon {
+            color: var(--text-primary);
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            border-radius: 4px;
+        }
+        .top-bar__icon i {
+            font-size: 1.125rem;
+        }
+        .top-bar__icon:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .top-bar__icon:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .menu {
+            position: fixed;
+            top: 65px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 50vh;
+            background: var(--menu-bg-light);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-100%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        [data-theme="dark"] .menu {
+            background: var(--menu-bg-dark);
+        }
+        .menu.open {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Pesquisa */
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 50px 14px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 55, 72, 0.1);
+        }
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+        .result-card {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+            margin-top: 8px;
+        }
+        .result-card.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: flex;
+        }
+        .result-thumbnail {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--episodes-hover));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            align-self: center;
+        }
+        .result-info h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .result-info p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .result-btn {
+            background: var(--highlight-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .result-btn:hover {
+            background: var(--highlight-hover);
+        }
+        .result-suggestion-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: background 0.2s ease;
+            width: 100%;
+        }
+        .result-suggestion-item:hover {
+            background: var(--menu-item-hover-background);
+        }
+        .result-suggestion-item i {
+            margin-right: 12px;
+            color: var(--text-secondary);
+            width: 20px;
+            text-align: center;
+        }
+        .result-suggestion-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        /* Carrossel de Imagens */
         .slideshow-container {
             max-width: 800px;
             width: 95%;
@@ -261,88 +309,10 @@
             position: relative;
             overflow: hidden;
             padding: 12px;
-            background: var(--surface); /* Adaptado */
+            background: var(--surface);
             box-shadow: 0 6px 30px var(--shadow-color);
             z-index: 10;
         }
-
-        .info-carousel-container {
-            max-width: 800px;
-            width: 95%;
-            margin: var(--spacing-section) auto;
-            padding: 17px;
-            background: var(--surface); /* Adaptado */
-            box-shadow: 0 6px 30px var(--shadow-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* ... outros estilos originais (info-slides-wrapper, slide, actions, action-button, etc.) ... */
-
-        .info-slides-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .info-slide {
-            display: none;
-            width: 100%;
-            transition: opacity 0.6s ease-in-out;
-        }
-
-        .info-slide.active {
-            display: block;
-            opacity: 1;
-        }
-
-        .slide-content {
-            position: static;
-            background: none;
-            padding: 8px 0;
-            color: var(--text-primary);
-        }
-
-        .title {
-            font-size: var(--font-size-sm);
-            font-weight: 700;
-            margin-bottom: 4px;
-            text-transform: lowercase;
-        }
-
-        .episode {
-            font-size: var(--font-size-xs);
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 4px;
-        }
-
-        .duration {
-            font-size: var(--font-size-xs);
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        .synopsis {
-            font-size: var(--font-size-xs);
-            color: var(--text-primary);
-            line-height: 1.5;
-            max-height: 48px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            margin-bottom: 12px;
-        }
-
-        .actions {
-            display: flex;
-            justify-content: flex-start;
-            gap: 8px; 
-            flex-wrap: wrap;
-        }
-
         .carousel-title {
             font-size: var(--font-size-lg);
             font-weight: 600;
@@ -351,7 +321,6 @@
             text-align: center;
             letter-spacing: 0.4px;
         }
-
         .slides-wrapper {
             height: 340px;
             display: flex;
@@ -361,8 +330,8 @@
             position: relative;
             padding: 0 25px;
             touch-action: pan-y;
+            overflow: hidden;
         }
-
         .slide {
             position: absolute;
             transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out, width 0.6s ease-in-out, height 0.6s ease-in-out;
@@ -376,11 +345,9 @@
             will-change: transform, opacity, width, height;
             z-index: 5;
         }
-
         .slide:active {
             cursor: grabbing;
         }
-
         .slide.active {
             transform: translateX(0) scale(1.15);
             z-index: 20;
@@ -389,30 +356,24 @@
             width: 306px;
             height: 229.5px;
         }
-
         .slide.prev {
             transform: translateX(-130%) scale(0.9);
             z-index: 10;
             opacity: 0.4;
         }
-
         .slide.next {
             transform: translateX(130%) scale(0.9);
             z-index: 10;
             opacity: 0.4;
         }
-
         .slide.animate-hint {
             animation: slideHint 4s ease-in-out forwards;
         }
-
         @keyframes slideHint {
             0% { transform: translateX(0) scale(1.15); }
             50% { transform: translateX(-50%) scale(1.15); }
             100% { transform: translateX(50%) scale(1.15); }
-            100% { transform: translateX(0) scale(1.15); }
         }
-
         .slide img {
             width: 100%;
             height: 100%;
@@ -421,9 +382,74 @@
             loading: lazy;
             z-index: 6;
         }
-
+        /* Carrossel de Informações */
+        .info-carousel-container {
+            max-width: 800px;
+            width: 95%;
+            margin: var(--spacing-section) auto;
+            padding: 17px;
+            background: var(--surface);
+            box-shadow: 0 6px 30px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .info-slides-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .info-slide {
+            display: none;
+            width: 100%;
+            transition: opacity 0.6s ease-in-out;
+        }
+        .info-slide.active {
+            display: block;
+            opacity: 1;
+        }
+        .slide-content {
+            position: static;
+            background: none;
+            padding: 8px 0;
+            color: var(--text-primary);
+        }
+        .title {
+            font-size: var(--font-size-sm);
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: lowercase;
+        }
+        .episode {
+            font-size: var(--font-size-xs);
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .duration {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .synopsis {
+            font-size: var(--font-size-xs);
+            color: var(--text-primary);
+            line-height: 1.5;
+            max-height: 48px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            margin-bottom: 12px;
+        }
+        .actions {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
         .action-button {
-            padding: 8px 16px; 
+            padding: 8px 16px;
             border: none;
             cursor: pointer;
             font-family: 'Ubuntu', sans-serif;
@@ -441,7 +467,6 @@
             position: relative;
             overflow: hidden;
         }
-
         .action-button::after {
             content: '';
             position: absolute;
@@ -452,54 +477,44 @@
             transition: opacity 0.2s ease;
             transform: scale(0);
         }
-
         .action-button:hover::after {
             opacity: 1;
             transform: scale(2);
         }
-
         .action-button.watch-now {
             background: var(--highlight-color);
         }
-
         .action-button.watch-now:hover {
             background: var(--highlight-hover);
             transform: scale(1.05);
         }
-
         .action-button.next-ep {
             background: var(--episodes-color);
         }
-
         .action-button.next-ep:hover {
             background: var(--episodes-hover);
             transform: scale(1.05);
         }
-
         .action-button.episodes {
             background: var(--episodes-color);
         }
-
         .action-button.episodes:hover {
             background: var(--episodes-hover);
             transform: scale(1.05);
         }
-
         .action-button.report-error {
             background: var(--report-error-color);
         }
-
         .action-button.report-error:hover {
             background: var(--report-error-hover);
             transform: scale(1.05);
         }
-
         .action-button:disabled {
             background: #808080;
             cursor: not-allowed;
             transform: none;
         }
-
+        /* Outros Conteúdos e Footer */
         .notification {
             position: fixed;
             top: 50%;
@@ -518,7 +533,6 @@
             max-width: 90%;
             width: 400px;
         }
-
         [data-theme="light"] .notification {
             background: rgba(255, 255, 255, 0.95);
             color: var(--text-primary);
@@ -527,12 +541,10 @@
             background: rgba(18, 21, 32, 0.95);
             color: var(--text-primary);
         }
-
         .notification.show {
             opacity: 1;
         }
-
-        .anime-trailer {
+        .anime-trailer, .anime-info {
             max-width: 800px;
             width: 95%;
             margin: var(--spacing-section) auto;
@@ -541,22 +553,19 @@
             box-shadow: 0 4px 20px var(--shadow-color);
             color: var(--text-primary);
         }
-
-        .anime-trailer h2 {
+        .anime-trailer h2, .anime-info h2 {
             font-size: var(--font-size-lg);
             font-weight: 600;
             margin-bottom: 15px;
             color: var(--highlight-color);
         }
-
         .trailer-embed {
             position: relative;
-            padding-bottom: 56.25%; 
+            padding-bottom: 56.25%;
             height: 0;
             overflow: hidden;
             background: #000;
         }
-
         .trailer-embed iframe {
             position: absolute;
             top: 0;
@@ -564,33 +573,14 @@
             width: 100%;
             height: 100%;
         }
-
-        .anime-info {
-            max-width: 800px;
-            width: 95%;
-            margin: var(--spacing-section) auto;
-            padding: 17px;
-            background: var(--surface);
-            box-shadow: 0 4px 20px var(--shadow-color);
-            color: var(--text-primary);
-        }
-
-        .anime-info h2 {
-            font-size: var(--font-size-lg);
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--highlight-color);
-        }
-
         .anime-info p {
             font-size: var(--font-size-sm);
             line-height: 1.6;
             margin-bottom: 12px;
         }
-
         .footer {
             width: 100%;
-            background: var(--surface); /* Adaptado */
+            background: var(--surface);
             color: var(--text-secondary);
             text-align: center;
             padding: 16px 0;
@@ -598,18 +588,16 @@
             box-shadow: 0 -2px 5px var(--shadow-color);
             font-size: var(--font-size-xs);
         }
-
         .footer a {
             color: var(--highlight-color);
             text-decoration: none;
             margin: 0 10px;
             transition: color 0.2s ease;
         }
-
         .footer a:hover {
             color: var(--highlight-hover);
         }
-
+        /* Menu de Episódios */
         .episodes-menu {
             position: fixed;
             top: 0;
@@ -625,24 +613,20 @@
             padding: 20px;
             overflow-y: auto;
         }
-
         .episodes-menu.open {
             left: 0;
         }
-
         .episodes-menu__title {
             font-size: var(--font-size-md);
             font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 15px;
         }
-
         .episodes-menu__list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-
         .episodes-menu__item {
             background: var(--menu-item-background);
             color: var(--text-primary);
@@ -655,15 +639,12 @@
             transition: background 0.2s ease, border-color 0.2s ease;
             border: 2px solid transparent;
         }
-
         .episodes-menu__item.last-watched {
             border-color: var(--highlight-color);
         }
-
         .episodes-menu__item:hover {
             background: var(--menu-item-hover-background);
         }
-
         .episodes-menu__overlay {
             position: fixed;
             top: 0;
@@ -674,83 +655,198 @@
             z-index: 2999;
             display: none;
         }
-
         .episodes-menu__overlay.active {
             display: block;
         }
-
+        /* Seção de Propaganda */
+        .ads-section {
+            width: 100%;
+            max-width: 1000px;
+            padding: 1rem;
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin: 1rem auto;
+            border: 1px solid var(--border);
+        }
+        .ads-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .ads-section h2 i {
+            color: var(--highlight-color);
+        }
+        .ads-section > p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+        .carousel-container {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            display: flex;
+            gap: 0.75rem;
+            padding: 0 0.75rem 0.75rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .carousel-container::-webkit-scrollbar {
+            display: none;
+        }
+        .carousel-container .ad-card {
+            flex: 0 0 calc(100% - 1.5rem);
+            max-width: 100%;
+            scroll-snap-align: start;
+            min-height: 120px;
+        }
+        .ad-card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .ad-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        .ad-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        .ad-card.propaganda {
+            flex: 0 0 200px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, var(--surface), var(--background));
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .ad-card.propaganda h3 {
+            font-size: 0.9rem;
+            text-align: center;
+            margin: 0;
+            color: var(--text-primary);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        /* Media Queries */
         @media (max-width: 768px) {
             :root {
                 --spacing-section: 25px;
             }
-
             .header h1 { font-size: 1rem; }
             .top-bar__icon i { font-size: 1rem; }
-
             .slides-wrapper {
                 height: 289px;
                 gap: 25.5px;
                 padding: 0 12px;
             }
-
             .slide {
                 width: 170px;
                 height: 127.5px;
             }
-
             .slide.active {
                 width: 255px;
                 height: 191.25px;
             }
-
             .slide.prev {
                 transform: translateX(-110%) scale(0.9);
             }
-
             .slide.next {
                 transform: translateX(110%) scale(0.9);
             }
-
             .title {
                 font-size: var(--font-size-xs);
             }
-
             .episode, .duration, .synopsis {
                 font-size: calc(var(--font-size-xs) * 0.9);
             }
-
             .actions .action-button {
-                padding: 6px 12px; 
+                padding: 6px 12px;
                 font-size: var(--font-size-xs);
                 min-width: 80px;
             }
-
             .notification {
                 font-size: var(--font-size-sm);
                 padding: 10px 20px;
                 width: 300px;
             }
-
             .episodes-menu {
                 width: 80%;
             }
+            .header {
+                padding: 0 12px;
+                height: 55px;
+            }
+            .zoom-container {
+                padding-top: 55px;
+            }
+            .menu {
+                top: 55px;
+            }
+            .top-bar__icon {
+                padding: 6px;
+            }
+            .ads-section {
+                padding: 0.75rem;
+            }
+            .ads-section h2 {
+                font-size: 1.125rem;
+            }
+            .carousel-container .ad-card {
+                flex: 0 0 calc(100% - 1rem);
+            }
+            .ad-card {
+                padding: 0.75rem;
+            }
+            .ad-card h3 {
+                font-size: 1rem;
+            }
         }
-
         @media (max-width: 480px) {
             .slides-wrapper {
                 height: 250px;
             }
-
             .slide {
                 width: 150px;
                 height: 112.5px;
             }
-
             .slide.active {
                 width: 225px;
                 height: 168.75px;
             }
         }
+        @media (min-width: 601px) and (max-width: 1024px) {
+            .header h1 {
+                font-size: 1.125rem;
+            }
+            .ads-section {
+                padding: 0.75rem;
+            }
+            .ads-section h2 {
+                font-size: 1.25rem;
+            }
+        }
+        /* FIM DO CSS UNIFICADO */
     </style>
 </head>
 <body data-theme="light">
@@ -760,8 +856,14 @@
                 <h1><i class="fas fa-dragon"></i>Anime I Geek</h1>
             </div>
             <div class="top-bar__section">
-                <button aria-label="Alternar menu" class="top-bar__icon" id="menu-icon">
-                    <i class="fas fa-bars"></i>
+                <button aria-label="Diminuir zoom" class="top-bar__icon" id="zoom-out-btn">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <button aria-label="Aumentar zoom" class="top-bar__icon" id="zoom-in-btn">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+                <button aria-label="Abrir busca" class="top-bar__icon" id="menu-icon">
+                    <i class="fas fa-search"></i>
                 </button>
                 <button aria-label="Alternar tema" class="top-bar__icon" id="theme-toggle">
                     <i class="fas fa-adjust"></i>
@@ -777,43 +879,57 @@
         </nav>
     </div>
 
-    <div class="slideshow-container" id="slideshow-container" aria-live="polite">
-        <div class="carousel-section">
-            <div class="carousel-title" id="carouselTitle">Death Note - Episódio 1</div>
-            <div class="slides-wrapper" id="slidesWrapper">
-                <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
-                <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+    <div class="zoom-container" id="zoom-container">
+        <main style="width:100%;max-width:1000px;padding:0 0.75rem 120px;margin:0 auto;">
+
+            <div class="slideshow-container" id="slideshow-container" aria-live="polite">
+                <div class="carousel-section">
+                    <div class="carousel-title" id="carouselTitle">Death Note - Episódio 1</div>
+                    <div class="slides-wrapper" id="slidesWrapper">
+                        <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
+                        <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+                    </div>
+                </div>
             </div>
+
+            <div class="info-carousel-container" id="infoCarousel">
+                <div class="info-slides-wrapper" id="infoSlidesWrapper"></div>
+            </div>
+
+            <div class="anime-trailer">
+                <h2>Trailer</h2>
+                <div class="trailer-embed">
+                    <iframe
+                        src="https://www.youtube.com/embed/OcvYRCYm2OE"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        title="Trailer de Death Note"
+                    ></iframe>
+                </div>
+            </div>
+
+            <div class="anime-info">
+                <h2>Sobre Death Note</h2>
+                <p><strong>Gênero:</strong> Mistério, Sobrenatural, Policial, Suspense, Psicológico</p>
+                <p><strong>Estúdio:</strong> Madhouse</p>
+                <p><strong>Diretor:</strong> Tetsurō Araki</p>
+                <p><strong>Ano:</strong> 2006</p>
+                <p><strong>Total de Episódios:</strong> 37</p>
+                <p><strong>Sinopse:</strong> Light Yagami, um estudante do ensino médio brilhante mas entediado, descobre um caderno misterioso chamado 'Death Note', jogado na Terra pelo Shinigami Ryuk. O caderno concede ao seu usuário o poder de matar qualquer pessoa cujo nome seja escrito nele. Light decide usar o Death Note para livrar o mundo do mal e se tornar o 'Deus' de um novo mundo. No entanto, suas ações chamam a atenção de L, um detetive de elite mundialmente famoso, que inicia uma caçada para capturar Light, conhecido publicamente como Kira. O anime é um intenso jogo de xadrez psicológico e moral entre dois gênios.</p>
+            </div>
+
+            <section class="ads-section fade-in" style="background: var(--progress-bg);">
+                <h2><i class="fas fa-bullhorn"></i>Propagandas Patrocinadas</h2>
+                <p>Veja as ofertas dos nossos parceiros.</p>
+                <div class="carousel-container" id="propaganda-carousel-1"></div>
+            </section>
+        </main>
+        <div class="footer">
+            <p>© 2025 Death Note. Todos os direitos reservados. Desenvolvido por xAI.</p>
         </div>
     </div>
-    <div class="info-carousel-container" id="infoCarousel">
-        <div class="info-slides-wrapper" id="infoSlidesWrapper"></div>
-    </div>
-    
-    <div class="anime-trailer">
-        <h2>Trailer</h2>
-        <div class="trailer-embed">
-            <iframe 
-                src="https://www.youtube.com/embed/OcvYRCYm2OE" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen
-                title="Trailer de Death Note"
-            ></iframe>
-        </div>
-    </div>
-    <div class="anime-info">
-        <h2>Sobre Death Note</h2>
-        <p><strong>Gênero:</strong> Mistério, Sobrenatural, Policial, Suspense, Psicológico</p>
-        <p><strong>Estúdio:</strong> Madhouse</p>
-        <p><strong>Diretor:</strong> Tetsurō Araki</p>
-        <p><strong>Ano:</strong> 2006</p>
-        <p><strong>Total de Episódios:</strong> 37</p>
-        <p><strong>Sinopse:</strong> Light Yagami, um estudante do ensino médio brilhante mas entediado, descobre um caderno misterioso chamado 'Death Note', jogado na Terra pelo Shinigami Ryuk. O caderno concede ao seu usuário o poder de matar qualquer pessoa cujo nome seja escrito nele. Light decide usar o Death Note para livrar o mundo do mal e se tornar o 'Deus' de um novo mundo. No entanto, suas ações chamam a atenção de L, um detetive de elite mundialmente famoso, que inicia uma caçada para capturar Light, conhecido publicamente como Kira. O anime é um intenso jogo de xadrez psicológico e moral entre dois gênios.</p>
-    </div>
-    <div class="footer">
-        <p>© 2025 Death Note. Todos os direitos reservados. Desenvolvido por xAI.</p>
-        </div>
+
     <div class="notification" id="notification"></div>
     <div class="episodes-menu" id="episodesMenu">
         <div class="episodes-menu__title">Lista de Episódios</div>
@@ -822,47 +938,9 @@
     <div class="episodes-menu__overlay" id="episodesMenuOverlay"></div>
 
     <script type="module">
-        // Importações do Firebase
-        // NOVO: Importa initializeApp
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-        // NOVO: Importação do Firestore
-        import { getFirestore, collection, addDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Variáveis globais para simulação (Mantidas do seu script original)
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-            return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-                try {
-                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                    var firstSheetName = workbook.SheetNames[0];
-                    var worksheet = workbook.Sheets[firstSheetName];
-                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                    var filteredData = jsonData.filter(row => row.some(filledCell));
-                    var headerRowIndex = filteredData.findIndex((row, index) =>
-                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                    );
-                    if (headerRowIndex === -1 || headerRowIndex > 25) {
-                        headerRowIndex = 0;
-                    }
-                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
-                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                    return csv;
-                } catch (e) {
-                    console.error(e);
-                    return "";
-                }
-            }
-            return gk_fileData[filename] || "";
-        }
-
-        // --- INICIALIZAÇÃO DO FIREBASE CORRIGIDA ---
-        // Configuração do Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js';
+        import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc } from 'https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js';
         const firebaseConfig = {
             apiKey: "AIzaSyA9vB_anmutvZByIhKxsPJbsP0VZ7gyWB0",
             authDomain: "sorteio-mega-sorte.firebaseapp.com",
@@ -872,26 +950,435 @@
             appId: "1:776750928407:web:72da06deb8b97302b5c252",
             measurementId: "G-GDZ7D30N0G"
         };
-        
-        // 1. Inicializa o Firebase. Se já estiver inicializado em outro lugar, ele retornará a instância [DEFAULT] existente.
         const app = initializeApp(firebaseConfig);
-        
-        // 2. Obtém a referência do Firestore usando a instância 'app' recém-inicializada.
+        const analytics = getAnalytics(app);
         const db = getFirestore(app);
-        // --- FIM DA INICIALIZAÇÃO DO FIREBASE CORRIGIDA ---
 
-        // As referências a analytics e db devem ser feitas no escopo global do módulo para evitar re-inicialização.
-        // Já que estão no mesmo arquivo, confiaremos que as referências globais do script do cabeçalho
-        // (window.getAnalytics, window.getFirestore, etc.) foram estabelecidas ou acessíveis.
-        // No entanto, para fins de execução, vamos definir as constantes localmente.
-        // O script do cabeçalho define db no escopo do módulo, o que pode não ser acessível aqui.
-        // Para garantir, vamos recriar a inicialização localmente, mas a prática ideal seria usar um único arquivo JS.
-        // Como o script do cabeçalho usa a tag <script type="module"> e não define window.db, é necessário redefinir a lógica aqui.
-        
-        // REMOVIDO: const dbRef = getFirestore(app); // VAI USAR 'db' AGORA
+        // --- LÓGICA DE PESQUISA (LUPA) ---
+        window.searchAnimes = async (query) => {
+            const resultsList = document.getElementById('result-card');
+            const lowerQuery = query.trim().toLowerCase();
 
-        // --- FUNÇÕES DE RASTREAMENTO NO FIRESTORE (NOVO) ---
-        // ... (as funções getIPAddress e recordUserInteraction estão aqui, usando 'db' no escopo do módulo superior) ...
+            if (!lowerQuery) {
+                resultsList.style.display = 'none';
+                resultsList.innerHTML = '';
+                return;
+            }
+
+            const firstLetter = lowerQuery[0];
+            if (!firstLetter.match(/^[a-z]$/)) {
+                resultsList.style.display = 'none';
+                resultsList.innerHTML = '';
+                return;
+            }
+
+            const results = [];
+
+            try {
+                const docRef = doc(db, 'pesquisa_animes', firstLetter);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    for (const [animeKey, animeData] of Object.entries(data)) {
+                        const lowerTitle = animeData.title ? animeData.title.toLowerCase() : '';
+                        const lowerKey = animeKey.toLowerCase();
+
+                        if (lowerTitle.startsWith(lowerQuery) || lowerKey.startsWith(lowerQuery)) {
+                            results.push({
+                                ...animeData,
+                                key: animeKey,
+                                title: animeData.title || animeKey
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro na busca:', error);
+            }
+
+            results.sort((a, b) => a.title.localeCompare(b.title));
+
+            if (results.length > 0) {
+                resultsList.innerHTML = '';
+                results.forEach(anime => {
+                    const resultItem = document.createElement('a');
+                    resultItem.href = anime.watch_url || '#';
+                    resultItem.target = '_blank';
+                    resultItem.className = 'result-suggestion-item';
+                    resultItem.innerHTML = `
+                        <i class="${anime.thumbnail_icon || 'fas fa-book'}"></i>
+                        <span class="result-suggestion-title">${anime.title}</span>
+                    `;
+                    resultsList.appendChild(resultItem);
+
+                    if (analytics) {
+                         logEvent(analytics, 'search_suggestion_shown', { anime: anime.title, query: query });
+                    }
+                });
+                resultsList.style.display = 'flex';
+                resultsList.classList.add('show');
+            } else {
+                resultsList.style.display = 'none';
+                resultsList.innerHTML = '';
+            }
+        };
+
+        const config = {
+            series: [
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.1 – RENASCIMENTO",
+                    "duration": "2 de outubro de 2006 23 min",
+                    "synopsis": "Brilhante e entediado, o estudante Light Yagami encontra o Death Note, um caderno capaz de matar qualquer pessoa cujo nome seja escrito nele. Com ele, Light decide livrar o mundo do mal, matando criminosos um a um. Mas quando os assassinatos começam a se acumular, o genial detetive L assume o caso, dando início a uma épica batalha de intelectos.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1tI7_aQpxp3tCXn8qPntzL6hgBjsEwS4e/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.2 – CONFRONTO",
+                    "duration": "9 de outubro de 2006 24 min",
+                    "synopsis": "Com criminosos do mundo todo morrendo, L atende aos apelos dos representantes das Nações Unidas, e estabelece uma força-tarefa com sede no Japão, sob o comando de ninguém menos que Soichiro Yagami, pai de Light.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1aXWua0ueygwP5cJz1OyXFRhiVoV7VXcV/view",
+                    "adUrl": "https://ad.exemplo.com/ep-02"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.3 – NEGOCIAÇÕES",
+                    "duration": "16 de outubro de 2006 24 min",
+                    "synopsis": "Ryuk, o Shinigami que deixou o Death Note cair no mundo humano, avisa a Light que há alguém em seu encalço. Ao saber que Light está interessado em descobrir a identidade de seu perseguidor, Ryuk oferece uma oferta irrecusável...",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1djjUqe3aMHmZbSB7DlzqVxfI60S-gV5h/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.4 – PERSEGUIÇÃO",
+                    "duration": "23 de outubro de 2006 24 min",
+                    "synopsis": "Light, mundialmente conhecido como o infame Kira, testa os limites do poder do Death Note, executando seis prisioneiros de maneiras distintas e controlando seus movimentos antes de morrer.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1jRuazHWSw0aOaZf7tX4kkPqpe75YfxD1/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.5 – TÁTICAS",
+                    "duration": "30 de outubro de 2006 24 min",
+                    "synopsis": "Ao descobrir que L trouxe agentes do FBI para o Japão, Soichiro Yagami solicita uma reunião em pessoa com ele. Enquanto isso, Light maquina um ardil para removê-los permanentemente do caso.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1rWC17ap_w_p83__Uk2-p_EQQq9i4NdxO/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.6 – RASGO",
+                    "duration": "6 de novembro de 2006 24 min",
+                    "synopsis": "Light encontra uma mulher no departamento de polícia que carrega uma importante pista sobre o caso Kira. Como filho do líder da investigação, Light se oferece para ouvir sua história, e descobre que ela carrega provas suficientes para levá-lo para a prisão!",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1fh7lAomYKGb4b86I0MwsefBLGAzI5yPU/view",
+                    "adUrl": "https://ad.exemplo.https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb/ep-06"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.7 – CÉU NUBLADO",
+                    "duration": "13 de novembro de 2006 24 min",
+                    "synopsis": "Light usa o Death Note para matar uma mulher que poderia levá-lo para a prisão, mas o caderno não funciona, apontando que a mulher deve ter dado um nome falso. Restam-lhe apenas alguns minutos para descobrir o nome verdadeiro, antes que ela conte tudo para a polícia.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1U3XTsXfe_cVB7jt6zoZckZ5MKEpIyQjP/view",
+                    "adUrl": "https://ad.exemplo.https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb/ep-07"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.8 – OFUSCAÇÃO",
+                    "duration": "21 de novembro de 2006 24 min",
+                    "synopsis": "L insiste em grampear as casas das famílias investigadas por Raye Penbar, incluindo a casa do comissário Yagami - mas Light antecipou-se a esse movimento e já tem tudo planejado.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1aj31lf4HAnPGgX2R0M2ERGPw7JCBB8m2/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.9 – CONTATO",
+                    "duration": "27 de novembro de 2006 24 min",
+                    "synopsis": "Os assassinatos continuam, e L começa a suspeitar do comportamento impecável de Light. Para averiguá-lo mais de perto, L se matricula na mesma universidade que Light.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1XlEzW5rvseBu9GsdUBH4JIvGRfixFsQP/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.10 – DÚVIDA",
+                    "duration": "4 de dezembro de 2006 24 min",
+                    "synopsis": "L suspeita cada vez mais de Light, que o convence a deixar que participe das investigações. Entretanto, ambos são surpreendidos por um telefonema: Soichiro Yagami sofreu um ataque cardíaco.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1O0LwCUMcTxxPlxWgDSw4nNYGlqQNewCu/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.11 – ASSALTO",
+                    "duration": "18 de dezembro de 2006 24 min",
+                    "synopsis": "Como previam as fitas enviadas à Sakura TV, todos os âncoras jornalísticos que duvidaram dos poderes de Kira morreram um a um. Ao observar isso, L conclui que essas mortes só podem ser obra de um segundo Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1WGuPuAMZOWa30Mvx7sGnLCxn9j8xZ4ZH/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.12 – AMOR",
+                    "duration": "26 de dezembro de 2006 24 min",
+                    "synopsis": "Com um segundo Kira a solta, L convida Light a participar da caçada pelo impostor, fingindo ser o Kira verdadeiro. Light aceita, a fim de espantar as suspeitas que recaem sobre si, mas logo percebe que este outro Kira possui um poder que nem mesmo ele tem.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1y1c1JXxB7L5F6kJO7x7oZyvvgDph5rg2/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.13 – CONFISSÕES",
+                    "duration": "8 de janeiro de 2007 24 min",
+                    "synopsis": "Light viaja a Aoyama para descobrir a identidade do segundo Kira. Contudo, Misa Amane lança mão de seu dom para identificar Light sem que os dois se encontrem.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/15LKSnOJ7B3NaWDmVvvzrGkmmGaQoghs2/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.14 – AMIGO",
+                    "duration": "15 de janeiro de 2007 24 min",
+                    "synopsis": "Após mostrarem seus Death Notes e comprovarem suas identidades, Light pede a Misa que use sua Shinigami Rem para se livrar de L. A garota aceita com uma condição: a de que Light torne-se namorado dela.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1YeVnLi024hDMVug6IFi3hWYIYLHWWA9N/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.15 – APOSTA",
+                    "duration": "23 de janeiro de 2007 24 min",
+                    "synopsis": "Um novo Kira, que mata por dinheiro, surge no Japão, forçando L a libertar Light e Misa para ajudá-lo a provar sua inocência e capturar o novo assassino.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1prGrwMkTR0e9YrjmM7tYfXz7lzy3Tlsq/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Temporada 1 Legendado",
+                    "episode": "T1 EP.16 – DECISÃO",
+                    "duration": "30 de janeiro de 2007 24 min",
+                    "synopsis": "Light e Misa trabalham com L para descobrir a identidade do novo Kira, mas Light planeja secretamente recuperar seu Death Note e a memória de Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/12Fv-tTxPhesWeTvbpdUybnE5mJLnWplC/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.17 – EXECUÇÃO",
+                    "duration": "6 de fevereiro de 2007 24 min",
+                    "synopsis": "L tenta um experimento extremo colocando Light e Misa sob vigilância e ameaça de morte, para testar se um deles é realmente Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/185qtfmE4yrWUXoVpfj3zHHHDisvO9jX6/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.18 – COMPANHEIROS",
+                    "duration": "13 de fevereiro de 2007 24 min",
+                    "synopsis": "Light recupera suas memórias de Kira e planeja manipular tanto L quanto a nova Kira para eliminar seus inimigos e retomar o controle total.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1e50Rod4XtqJo_ZjK9olR3WwBYljs9F09/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.19 – MATSUDA",
+                    "duration": "20 de fevereiro de 2007 24 min",
+                    "synopsis": "Matsuda descobre o segredo da Yotsuba e quase é morto, mas Light transforma a situação em uma armadilha perfeita para capturar o novo Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1uPoQSplhIfFiQHcnW3PTV3nx8Ov4m7Eo/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.20 – MEDIDA",
+                    "duration": "27 de fevereiro de 2007 24 min",
+                    "synopsis": "Light e L unem forças para expor o grupo Yotsuba e identificar quem está usando o Death Note, mas o plano esconde intenções bem diferentes de ambos.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1oDud7g9NCsT66WKu4qGjLwBCot6EExX1/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.21 – PERFORMANCE",
+                    "duration": "6 de março de 2007 24 min",
+                    "synopsis": "Com a ajuda de Misa, Light coloca em prática um plano arriscado para recuperar o Death Note das mãos da Yotsuba e eliminar seus suspeitos.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/154FGAFMSN-4bKZRaH_20ELW3mL6ejIZJ/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.22 – GUIA",
+                    "duration": "13 de março de 2007 24 min",
+                    "synopsis": "Após eliminar o novo Kira, Light recupera o caderno e retoma sua posição como o verdadeiro Kira, agora mais determinado e cuidadoso do que nunca.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1MeX89zd_mo37_bKSXJnQMD9RQRM98qPo/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.23 – FRENESI",
+                    "duration": "20 de março de 2007 24 min",
+                    "synopsis": "Light, agora como o novo L, começa a manipular o grupo de investigação e prepara o cenário para eliminar L definitivamente.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1CTb-WoVDjgN3u6ZSbzCmaMRLn4-yfhAo/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.24 – RESSURREIÇÃO",
+                    "duration": "27 de março de 2007 24 min",
+                    "synopsis": "L e Light têm um confronto final carregado de tensão e desconfiança, enquanto o verdadeiro Kira prepara o golpe de mestre.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1EHW9Tu-DuoNWcQywSJJ4haiDNX7oPJqg/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.25 – SILÊNCIO",
+                    "duration": "3 de abril de 2007 24 min",
+                    "synopsis": "O jogo entre L e Kira chega ao fim. Light vence, mas a vitória traz o início de uma nova era de caos e julgamento.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1Vfr9f_SlSBGKyRGjsvLhku7VKjLsTHdA/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.26 – RENASCIMENTO",
+                    "duration": "10 de abril de 2007 24 min",
+                    "synopsis": "Light assume o lugar de L oficialmente e começa a controlar o mundo como o novo deus, enquanto novos inimigos observam das sombras.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1jRxmCfNyEmY8tV6uqcBMRJ8ImlHWAHkp/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.27 – ABERTURA",
+                    "duration": "17 de abril de 2007 24 min",
+                    "synopsis": "Cinco anos após a morte de L, Light domina o mundo como Kira, mas dois sucessores de L — Near e Mello — surgem para desafiá-lo.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/17LnFmasZnUE884_glD2Mo9dKfxlrBavj/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.28 – IMPACIÊNCIA",
+                    "duration": "24 de abril de 2007 24 min",
+                    "synopsis": "Near inicia sua investigação e descobre as conexões entre Light e o antigo L, enquanto Mello cria sua própria organização criminosa.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1-JMkDqRKtmfrn39fwweiERYgqmHR94ci/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.29 – PAI",
+                    "duration": "1 de maio de 2007 24 min",
+                    "synopsis": "Mello sequestra Sayu, a irmã de Light, exigindo o Death Note em troca. A guerra entre os dois sucessores de L começa oficialmente.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1p7V67_tByPK5okr0mgeIx019FVeX_a9s/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.30 – JUSTIÇA",
+                    "duration": "8 de maio de 2007 24 min",
+                    "synopsis": "Light e Near começam a se enfrentar diretamente em um duelo de inteligência, cada um manipulando aliados e informações a seu favor.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1WblpN4nvwDuRtQbeDLTD20IYsDpme0_X/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.31 – TRANSFERÊNCIA",
+                    "duration": "15 de maio de 2007 24 min",
+                    "synopsis": "Mello invade o prédio da NPA e o caos toma conta de Tóquio. Near começa a se aproximar da verdade sobre Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/13KcxOEZYqD1xa3RWcMkSpWCZ-Xc0qe9I/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.32 – SELEÇÃO",
+                    "duration": "22 de maio de 2007 24 min",
+                    "synopsis": "Light começa a usar Takada, seu antigo amor, como nova representante de Kira, para manipular o mundo da mídia.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1Sy-KniBY441POvCC90vjpsj1Mf25rweL/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.33 – DESPREZO",
+                    "duration": "29 de maio de 2007 24 min",
+                    "synopsis": "Mello retorna à cena, e Near prepara um plano para expor Light usando as informações vazadas da NPA.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1rb9q50LipKwh8mRmWLZnxUhurLRi3QQj/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.34 – VIGILÂNCIA",
+                    "duration": "5 de junho de 2007 24 min",
+                    "synopsis": "Takada começa a agir de forma independente, colocando em risco o plano de Light e expondo brechas que Near aproveita.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1fp-UIW1isyCMLjAp8U4OTCZLYVh2qtF7/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.35 – MALÍCIA",
+                    "duration": "12 de junho de 2007 24 min",
+                    "synopsis": "Light elimina Mello, mas o ato revela detalhes suficientes para Near montar seu plano final e atrair Kira para uma armadilha.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1rWGLMsgYmiAhHoPPDFA11bGOXsDTPqID/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.36 – 1.28",
+                    "duration": "19 de junho de 2007 24 min",
+                    "synopsis": "Gravemente ferido, Light foge do armazém. Near observa enquanto Light, enfraquecido, tenta escapar de seu destino.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1xlpvQqDceyA29PFtyWKx-s9Ks79lH2_m/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                },
+                {
+                    "title": "Death Note Legendado",
+                    "episode": "T1 EP.37 – NOVO MUNDO",
+                    "duration": "26 de junho de 2007 24 min",
+                    "synopsis": "Light encontra Ryuk em uma escadaria abandonada. Ryuk cumpre sua promessa e escreve o nome de Light no Death Note, encerrando a saga de Kira.",
+                    "image": "https://i.postimg.cc/28mYky63/death-note-pictures-rqjwg4d9qfgoqien.webp",
+                    "link": "https://drive.google.com/file/d/1nDYqw9ZKj885gfQw8785W9fZj9QjuFki/view",
+                    "adUrl": "https://www.effectivegatecpm.com/gi25c6365j?key=67989d4028b5c809586132717898b1cb"
+                }
+            ],
+            swipeThreshold: 100
+        };
+
+        let state = {
+            currentSlide: 0,
+            isDraggingSlides: false,
+            startX: 0,
+            currentX: 0,
+            lastTouchTime: 0,
+            isAdNext: true,
+            isWatchNowBlocked: false,
+            isEpisodesMenuOpen: false,
+            lastWatchedEpisode: parseInt(localStorage.getItem('lastWatchedEpisode')) || null
+        };
+        let elements = {};
+        const GLOBAL_AD_URL = "https://otieu.com/4/9329063";
+        const AD_INTERVAL = 23 * 60 * 1000;
+        let lastAdRedirect = localStorage.getItem('lastAdRedirect') ? parseInt(localStorage.getItem('lastAdRedirect')) : 0;
+
         async function getIPAddress() {
             try {
                 const response = await fetch('https://api.ipify.org?format=json');
@@ -902,19 +1389,14 @@
                 return "IP_NAO_DISPONIVEL";
             }
         }
-        
+
         async function recordUserInteraction(eventType, episodeIndex, adLink = null) {
             const episodeData = config.series[episodeIndex];
             if (!episodeData) return;
             const userIP = await getIPAddress();
             const episodeId = episodeData.episode.replace(/[\s\W]+/g, '_').toLowerCase().replace(/_+/g, '_').replace(/^_|_$/g, '');
-            // Acesso ao db (Firestore)
-            // Agora usa a constante 'db' definida no escopo do módulo, garantindo que seja a instância correta.
-            
-            // REMOVIDO: const localDb = getFirestore(app); // Não é mais necessário
 
             const episodeRef = doc(db, 'animes', 'death_note_legendado', 'episodios', episodeId);
-
             const interactionData = {
                 timestamp: new Date().toISOString(),
                 eventType: eventType,
@@ -926,7 +1408,6 @@
                 screenResolution: `${window.screen.width}x${window.screen.height}`,
                 ...(adLink && { adLink: adLink })
             };
-
             try {
                 await addDoc(collection(episodeRef, 'interacoes'), interactionData);
                 console.log(`Firebase Registrado: ${eventType} para ${episodeData.episode} (IP: ${userIP})`);
@@ -935,787 +1416,443 @@
             }
         }
 
-        // --- LÓGICA DO CARROSSEL E EVENTOS (ADAPTADA) ---
+        function handleGlobalClick(e) {
+            const now = Date.now();
+            const isInteractiveElement = e.target.closest('a, button, input, iframe, .top-bar__icon, .slide');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const slideshowContainer = document.getElementById('slideshow-container');
-            const notification = document.getElementById('notification');
-            const themeToggle = document.getElementById('theme-toggle'); // Usando ID do novo cabeçalho
-            const body = document.body;
-            const episodesMenu = document.getElementById('episodesMenu');
-            const episodesMenuList = document.getElementById('episodesMenuList');
-            const episodesMenuOverlay = document.getElementById('episodesMenuOverlay');
-            const infoCarousel = document.getElementById('infoCarousel');
-            const infoSlidesWrapper = document.getElementById('infoSlidesWrapper');
-            const carouselTitle = document.getElementById('carouselTitle');
+            if (!isInteractiveElement && (now - lastAdRedirect >= AD_INTERVAL)) {
 
-            if (!slideshowContainer || !notification || !themeToggle || !episodesMenu || !episodesMenuList || !episodesMenuOverlay || !infoCarousel || !infoSlidesWrapper || !carouselTitle) {
+                lastAdRedirect = now;
+                localStorage.setItem('lastAdRedirect', now);
+
+                showNotification('Redirecionando para propaganda...');
+                const win = window.open(GLOBAL_AD_URL, '_blank');
+                if (!win) {
+                    console.error('Window.open blocked:', GLOBAL_AD_URL);
+                    showNotification('Pop-up bloqueado. Permita pop-ups para ver a propaganda.');
+                }
+            }
+        }
+
+        function initialize() {
+            elements.slidesWrapper = document.getElementById('slidesWrapper');
+            elements.episodesMenu = document.getElementById('episodesMenu');
+            elements.episodesMenuList = document.getElementById('episodesMenuList');
+            elements.episodesMenuOverlay = document.getElementById('episodesMenuOverlay');
+            elements.infoCarousel = document.getElementById('infoCarousel');
+            elements.infoSlidesWrapper = document.getElementById('infoSlidesWrapper');
+            elements.carouselTitle = document.getElementById('carouselTitle');
+
+            if (!elements.slidesWrapper || !elements.episodesMenu || !elements.episodesMenuList || !elements.episodesMenuOverlay || !elements.infoCarousel || !elements.infoSlidesWrapper || !elements.carouselTitle) {
                 console.error('Elementos essenciais não encontrados');
                 return;
             }
-            
-            // Variável com o link de propaganda global.
-            const GLOBAL_AD_URL = "https://firefaucet.win/"; // Item 6
-            const EPISODE_AD_IMAGE_URL = "https://postimg.cc/R6K3pXzk/1a899cee"; // Mantida se for usada em outro lugar, mas ignorada abaixo
+            createCarousels();
+            createEpisodesMenu();
+            setupEventListeners();
+            triggerSlideAnimation();
+        }
 
-            const config = {
-                series: [
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 1 - Renascimento",
-    "duration": "23 minutos",
-    "synopsis": "O brilhante estudante Light Yagami encontra o Death Note, um caderno de um Shinigami que permite matar qualquer pessoa cujo nome seja escrito nele.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1tI7_aQpxp3tCXn8qPntzL6hgBjsEwS4e/view",
-    "adUrl": "https://www.xvideos.com/video.okiftdh8bdb/naomi_russell_offre_son_cul_parfait_a_un_chanceux_qui_en_profite_bien_video_complete_" 
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 2 - Confronto",
-    "duration": "23 minutos",
-    "synopsis": "Enquanto criminosos morrem globalmente, L, o maior detetive do mundo, se junta à polícia japonesa para encontrar Kira. Light desafia L na TV.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1aXWua0ueygwP5cJz1OyXFRhiVoV7VXcV/view",
-    "adUrl": "https://ad.exemplo.com/ep-02"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 3 - Negociações",
-    "duration": "23 minutos",
-    "synopsis": "Ryuk, o Shinigami, informa Light que está sendo seguido por agentes do FBI. Light elabora um plano para eliminá-los, mas L se aproxima.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1djjUqe3aMHmZbSB7DlzqVxfI60S-gV5h/view",
-    "adUrl": "https://ad.exemplo.com/ep-03"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 4 - Perseguição",
-    "duration": "23 minutos",
-    "synopsis": "Light usa a agente do FBI Naomi Misora para obter os nomes dos outros agentes infiltrados no Japão e executa um plano para eliminar todos.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1jRuazHWSw0aOaZf7tX4kkPqpe75YfxD1/view",
-    "adUrl": "https://ad.exemplo.com/ep-04"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 5 - Táticas",
-    "duration": "23 minutos",
-    "synopsis": "L coloca câmeras e microfones nas casas dos principais suspeitos, incluindo Light. Light percebe a armadilha e planeja como continuar os assassinatos.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1rWC17ap_w_p83__Uk2-p_EQQq9i4NdxO/view",
-    "adUrl": "https://ad.exemplo.com/ep-05"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 6 - Desvendando",
-    "duration": "23 minutos",
-    "synopsis": "Light executa seu plano para enganar as câmeras, mantendo um comportamento 'perfeito' enquanto continua a usar o Death Note.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1fh7lAomYKGb4b86I0MwsefBLGAzI5yPU/view",
-    "adUrl": "https://ad.exemplo.com/ep-06"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 7 - Nublado",
-    "duration": "23 minutos",
-    "synopsis": "L remove as câmeras, mas ainda está desconfiado de Light. O caso Kira começa a tomar proporções internacionais.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1U3XTsXfe_cVB7jt6zoZckZ5MKEpIyQjP/view",
-    "adUrl": "https://ad.exemplo.com/ep-07"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 8 - Glare",
-    "duration": "23 minutos",
-    "synopsis": "Light se inscreve e é aceito na Universidade To-Oh, a mesma universidade onde L, sob um pseudônimo, planeja estudar.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1aj31lf4HAnPGgX2R0M2ERGPw7JCBB8m2/view",
-    "adUrl": "https://ad.exemplo.com/ep-08"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 9 - Encontro",
-    "duration": "23 minutos",
-    "synopsis": "Light e L se encontram pela primeira vez. L revela sua verdadeira identidade para Light, propondo que trabalhem juntos no caso Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1XlEzW5rvseBu9GsdUBH4JIvGRfixFsQP/view",
-    "adUrl": "https://ad.exemplo.com/ep-09"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 10 - Dúvida",
-    "duration": "23 minutos",
-    "synopsis": "L continua a testar Light, jogando um jogo de xadrez psicológico. Um Segundo Kira surge na TV, anunciando que tem os Olhos de Shinigami.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1O0LwCUMcTxxPlxWgDSw4nNYGlqQNewCu/view",
-    "adUrl": "https://ad.exemplo.com/ep-10"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 11 - Assalto",
-    "duration": "23 minutos",
-    "synopsis": "O Segundo Kira (Misa Amane) envia fitas de vídeo para a TV Sakura, forçando a Força-Tarefa e L a agir para capturá-la.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1WGuPuAMZOWa30Mvx7sGnLCxn9j8xZ4ZH/view",
-    "adUrl": "https://ad.exemplo.com/ep-11"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 12 - Amor",
-    "duration": "23 minutos",
-    "synopsis": "Light encontra Misa Amane, o Segundo Kira, que tem os Olhos de Shinigami e se apaixona por ele. Ela se oferece para ajudá-lo a matar L.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1y1c1JXxB7L5F6kJO7x7oZyvvgDph5rg2/view",
-    "adUrl": "https://ad.exemplo.com/ep-12"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 13 - Confissão",
-    "duration": "23 minutos",
-    "synopsis": "Misa é capturada e torturada por L, que suspeita fortemente de que ela seja o Segundo Kira. Light elabora um plano arriscado para se proteger.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/15LKSnOJ7B3NaWDmVvvzrGkmmGaQoghs2/view",
-    "adUrl": "https://ad.exemplo.com/ep-13"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 14 - Amigo",
-    "duration": "23 minutos",
-    "synopsis": "Light renuncia ao seu Death Note para perder suas memórias. L o coloca sob custódia e sob constante vigilância para testar sua inocência.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1YeVnLi024hDMVug6IFi3hWYIYLHWWA9N/view",
-    "adUrl": "https://ad.exemplo.com/ep-14"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 15 - Aposta",
-    "duration": "23 minutos",
-    "synopsis": "Um novo Kira, que mata por dinheiro, surge no Japão, forçando L a libertar Light e Misa para ajudá-lo a provar sua inocência e encontrar o novo assassino.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1prGrwMkTR0e9YrjmM7tYfXz7lzy3Tlsq/view",
-    "adUrl": "https://ad.exemplo.com/ep-15"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 16 - Decisão",
-    "duration": "23 minutos",
-    "synopsis": "A Força-Tarefa e L descobrem que o novo Kira está ligado ao Grupo Yotsuba. Eles planejam uma operação para se infiltrar no grupo e descobrir a identidade de Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/12Fv-tTxPhesWeTvbpdUybnE5mJLnWplC/view",
-    "adUrl": "https://ad.exemplo.com/ep-16"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 17 - Execução",
-    "duration": "23 minutos",
-    "synopsis": "A investigação se concentra em Higuchi. A Força-Tarefa e L armam uma complexa armadilha para capturar o Kira Yotsuba.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/185qtfmE4yrWUXoVpfj3zHHHDisvO9jX6/view",
-    "adUrl": "https://ad.exemplo.com/ep-17"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 18 - Aliado",
-    "duration": "23 minutos",
-    "synopsis": "Higuchi é capturado. Light toca o Death Note e recupera todas as suas memórias de ser Kira, continuando seu plano mestre.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1e50Rod4XtqJo_ZjK9olR3WwBYljs9F09/view",
-    "adUrl": "https://ad.exemplo.com/ep-18"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 19 - Matsuda",
-    "duration": "23 minutos",
-    "synopsis": "Matsuda quase morre durante a captura de Higuchi. A Força-Tarefa estuda o Death Note, enquanto Light manipula Misa para obter o caderno de Rem.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1uPoQSplhIfFiQHcnW3PTV3nx8Ov4m7Eo/view",
-    "adUrl": "https://ad.exemplo.com/ep-19"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 20 - Provisório",
-    "duration": "23 minutos",
-    "synopsis": "Light convence Rem a matar L para proteger Misa, sabendo que isso resultará na morte da Shinigami. Ele está a um passo da vitória.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1oDud7g9NCsT66WKu4qGjLwBCot6EExX1/view",
-    "adUrl": "https://ad.exemplo.com/ep-20"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 21 - Atuação",
-    "duration": "23 minutos",
-    "synopsis": "L e Watari morrem subitamente. Rem se transforma em areia. Light assume o papel de L, tornando-se o líder da investigação Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/154FGAFMSN-4bKZRaH_20ELW3mL6ejIZJ/view",
-    "adUrl": "https://ad.exemplo.com/ep-21"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 22 - Orientação",
-    "duration": "23 minutos",
-    "synopsis": "Cinco anos se passam. Light, como 'L', comanda a Força-Tarefa. Dois jovens prodígios, Near e Mello, sucessores de L, surgem para caçar Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1MeX89zd_mo37_bKSXJnQMD9RQRM98qPo/view",
-    "adUrl": "https://ad.exemplo.com/ep-22"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 23 - Frenesi",
-    "duration": "23 minutos",
-    "synopsis": "Mello, trabalhando com a Máfia, sequestra Sayu Yagami, irmã de Light, exigindo o Death Note em troca. O caso Kira ganha nova intensidade.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1CTb-WoVDjgN3u6ZSbzCmaMRLn4-yfhAo/view",
-    "adUrl": "https://ad.exemplo.com/ep-23"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 24 - Reavivamento",
-    "duration": "23 minutos",
-    "synopsis": "O pai de Light, Soichiro Yagami, decide fazer o trato dos Olhos de Shinigami para recuperar o caderno e resgatar Sayu das mãos da Máfia.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1EHW9Tu-DuoNWcQywSJJ4haiDNX7oPJqg/view",
-    "adUrl": "https://ad.exemplo.com/ep-24"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 25 - Silêncio",
-    "duration": "23 minutos",
-    "synopsis": "Soichiro Yagami morre após a missão de resgate, revelando que Light não é Kira. Light usa sua morte para desviar as suspeitas de Near.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1Vfr9f_SlSBGKyRGjsvLhku7VKjLsTHdA/view",
-    "adUrl": "https://ad.exemplo.com/ep-25"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 26 - Renovação",
-    "duration": "23 minutos",
-    "synopsis": "O caso Kira se acalma, mas Near e Mello continuam a investigação separadamente. Near desconfia das regras falsas do Death Note.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1jRxmCfNyEmY8tV6uqcBMRJ8ImlHWAHkp/view",
-    "adUrl": "https://ad.exemplo.com/ep-26"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 27 - Abdução",
-    "duration": "23 minutos",
-    "synopsis": "Mello sequestra Takada, uma porta-voz de Kira, para pressionar Light e Near. Light tem que agir rápido para evitar que seus planos sejam expostos.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/17LnFmasZnUE884_glD2Mo9dKfxlrBavj/view",
-    "adUrl": "https://ad.exemplo.com/ep-27"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 28 - Impaciência",
-    "duration": "23 minutos",
-    "synopsis": "Light usa um pedaço do Death Note escondido para matar Takada e Mello, eliminando ambos os sucessores de L e garantindo sua vitória aparente.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1-JMkDqRKtmfrn39fwweiERYgqmHR94ci/view",
-    "adUrl": "https://ad.exemplo.com/ep-28"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 29 - Pai",
-    "duration": "23 minutos",
-    "synopsis": "Near propõe um encontro com Light e a Força-Tarefa japonesa para expor Kira. Light prepara seu seguidor, Teru Mikami (o Quarto Kira), para o confronto.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1p7V67_tByPK5okr0mgeIx019FVeX_a9s/view",
-    "adUrl": "https://ad.exemplo.com/ep-29"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 30 - Justiça",
-    "duration": "23 minutos",
-    "synopsis": "Mikami, o fanático seguidor de Kira, é instruído a usar o Death Note falso no encontro. Aizawa e a Força-Tarefa desconfiam cada vez mais de Light.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1WblpN4nvwDuRtQbeDLTD20IYsDpme0_X/view",
-    "adUrl": "https://ad.exemplo.com/ep-30"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 31 - Transferência",
-    "duration": "23 minutos",
-    "synopsis": "O confronto se aproxima. Near revela que Mikami está sendo vigiado. Mikami decide agir por conta própria e ir atrás de Takada.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/13KcxOEZYqD1xa3RWcMkSpWCZ-Xc0qe9I/view",
-    "adUrl": "https://ad.exemplo.com/ep-31"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 32 - Seleção",
-    "duration": "23 minutos",
-    "synopsis": "Mikami é exposto por Near e a Força-Tarefa. Light acredita que venceu, mas o plano de Near para trocar os Death Notes está em vigor.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1Sy-KniBY441POvCC90vjpsj1Mf25rweL/view",
-    "adUrl": "https://ad.exemplo.com/ep-32"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 33 - Desprezo",
-    "duration": "23 minutos",
-    "synopsis": "O encontro final acontece no armazém. Light e Near se confrontam. Mikami chega para escrever os nomes dos agentes no caderno.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1rb9q50LipKwh8mRmWLZnxUhurLRi3QQj/view",
-    "adUrl": "https://ad.exemplo.com/ep-33"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 34 - Vigilância",
-    "duration": "23 minutos",
-    "synopsis": "Light aguarda o momento da morte dos agentes. Near revela que trocou o Death Note de Mikami por uma cópia, expondo Light como Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1fp-UIW1isyCMLjAp8U4OTCZLYVh2qtF7/view",
-    "adUrl": "https://ad.exemplo.com/ep-34"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 35 - Malícia",
-    "duration": "23 minutos",
-    "synopsis": "Pego na armadilha de Near, Light perde o controle e tenta desesperadamente escrever o nome de Near. Matsuda atira em Light.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1rWGLMsgYmiAhHoPPDFA11bGOXsDTPqID/view",
-    "adUrl": "https://ad.exemplo.com/ep-35"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 36 - 1.28",
-    "duration": "23 minutos",
-    "synopsis": "Gravemente ferido, Light foge do armazém. Near observa enquanto Light, enfraquecido, tenta escapar de seu destino.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1xlpvQqDceyA29PFtyWKx-s9Ks79lH2_m/view",
-    "adUrl": "https://ad.exemplo.com/ep-36"
-  },
-  {
-    "title": "Death Note Legendado",
-    "episode": "Ep. 37 - Novo Mundo",
-    "duration": "23 minutos",
-    "synopsis": "Light encontra Ryuk em uma escadaria abandonada. Ryuk cumpre sua promessa e escreve o nome de Light no Death Note, encerrando a saga de Kira.",
-    "image": "https://i.postimg.cc/rmYSmPZw/478cb0f4fb07dd3138ee22afe319abb8.jpg",
-    "link": "https://drive.google.com/file/d/1nDYqw9ZKj885gfQw8785W9fZj9QjuFki/view",
-    "adUrl": "https://ad.exemplo.com/ep-37"
-  }
-],
-                swipeThreshold: 100,
-            };
-            
-            let state = {
-                currentSlide: 0,
-                isDraggingSlides: false,
-                startX: 0,
-                currentX: 0,
-                lastTouchTime: 0,
-                isAdNext: true,
-                isWatchNowBlocked: false,
-                isEpisodesMenuOpen: false,
-                lastWatchedEpisode: parseInt(localStorage.getItem('lastWatchedEpisode')) || null
-            };
-
-            let elements = {
-                slidesWrapper: document.getElementById('slidesWrapper'),
-                episodesMenu: episodesMenu,
-                episodesMenuList: episodesMenuList,
-                episodesMenuOverlay: episodesMenuOverlay,
-                infoCarousel: infoCarousel,
-                infoSlidesWrapper: infoSlidesWrapper,
-                carouselTitle: carouselTitle
-            };
-
-            /* Implementação do Ad de Clique Global (Item 6) */
-            // Intervalo de 23 minutos em milissegundos
-            const AD_INTERVAL = 23 * 60 * 1000; 
-            let lastAdRedirect = localStorage.getItem('lastAdRedirect') ? parseInt(localStorage.getItem('lastAdRedirect')) : 0;
-
-            function handleGlobalClick(e) {
-                const now = Date.now();
-                // Exclui elementos interativos para não bloquear a funcionalidade principal.
-                const isInteractiveElement = e.target.closest('a, button, input, iframe, .top-bar__icon, .slide'); // Alterado para a classe do novo cabeçalho
-                
-                if (!isInteractiveElement && (now - lastAdRedirect >= AD_INTERVAL)) {
-                    
-                    lastAdRedirect = now;
-                    localStorage.setItem('lastAdRedirect', now);
-                    
-                    showNotification('Redirecionando para propaganda...');
-
-                    // Abre a propaganda em uma nova aba
-                    const win = window.open(GLOBAL_AD_URL, '_blank');
-                    if (!win) {
-                        console.error('Window.open blocked:', GLOBAL_AD_URL);
-                        showNotification('Pop-up bloqueado. Permita pop-ups para ver a propaganda.');
-                    }
-                }
+        function triggerSlideAnimation() {
+            const activeSlide = elements.slidesWrapper.querySelector('.slide.active');
+            if (activeSlide) {
+                activeSlide.classList.add('animate-hint');
+                showNotification('Deslize para o próximo ou anterior episódio');
+                setTimeout(() => {
+                    activeSlide.classList.remove('animate-hint');
+                }, 4000);
             }
-            /* Fim Ad de Clique Global */
+        }
 
-            function initialize() {
-                if (!elements.slidesWrapper || !elements.episodesMenu || !elements.episodesMenuList || !elements.episodesMenuOverlay || !elements.infoCarousel || !elements.infoSlidesWrapper || !elements.carouselTitle) {
-                    console.error('Elementos do carrossel ou menu não encontrados');
-                    return;
-                }
-                createCarousels();
-                createEpisodesMenu();
-                setupEventListeners();
-                triggerSlideAnimation();
-            }
-
-            function triggerSlideAnimation() {
-                const activeSlide = elements.slidesWrapper.querySelector('.slide.active');
-                if (activeSlide) {
-                    activeSlide.classList.add('animate-hint');
-                    showNotification('Deslize para o próximo ou anterior episódio');
-                    setTimeout(() => {
-                        activeSlide.classList.remove('animate-hint');
-                    }, 4000);
-                }
-            }
-
-            function createCarousels() {
-                elements.slidesWrapper.innerHTML = `
-                    <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
-                    <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+        function createCarousels() {
+            elements.slidesWrapper.innerHTML = `
+                <div class="swipe-indicator swipe-left">← Deslizar (1 dedo)</div>
+                <div class="swipe-indicator swipe-right">Deslizar (1 dedo) →</div>
+            `;
+            elements.infoSlidesWrapper.innerHTML = '';
+            const items = config.series;
+            items.forEach((item, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide';
+                slide.dataset.index = index;
+                slide.setAttribute('aria-label', `Episódio ${item.episode}: ${item.title}`);
+                slide.innerHTML = `
+                    <img src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/360x270?text=Imagem+Indisponível'">
                 `;
-                elements.infoSlidesWrapper.innerHTML = '';
+                elements.slidesWrapper.appendChild(slide);
+                const nextIndex = (index + 1) % items.length;
+                const nextEpisode = items[nextIndex].episode.replace('Ep. ', '');
+                const infoSlide = document.createElement('div');
+                infoSlide.className = 'info-slide';
+                infoSlide.dataset.index = index;
 
-                const items = config.series;
-
-                items.forEach((item, index) => {
-                    // Main slides carousel (images only)
-                    const slide = document.createElement('div');
-                    slide.className = 'slide';
-                    slide.dataset.index = index;
-                    slide.setAttribute('aria-label', `Episódio ${item.episode}: ${item.title}`);
-                    slide.innerHTML = `
-                        <img src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.src='https://via.placeholder.com/360x270?text=Imagem+Indisponível'">
-                    `;
-                    elements.slidesWrapper.appendChild(slide);
-
-                    // Info carousel
-                    const nextIndex = (index + 1) % items.length;
-                    const nextEpisode = items[nextIndex].episode.replace('Ep. ', '');
-                    const infoSlide = document.createElement('div');
-                    infoSlide.className = 'info-slide';
-                    infoSlide.dataset.index = index;
-                    
-                    // MUDANÇA: Todos os botões no mesmo container, na ordem: Assistir agora - Próximo ep - reportar erro - episódios (Item 1)
-                    infoSlide.innerHTML = `
-                        <div class="slide-content">
-                            <div class="title">${item.title.toLowerCase()}</div>
-                            <div class="episode">${item.episode}</div>
-                            <div class="duration">${item.duration}</div>
-                            <div class="synopsis">${item.synopsis || 'Sinopse indisponível'}</div>
-                            <div class="actions">
-                                <button class="action-button watch-now" aria-label="Assistir ${item.title} ${item.episode} agora" data-index="${index}">▶ Assistir agora</button>
-                                <button class="action-button next-ep" aria-label="Ir para o próximo episódio ${nextEpisode}" data-index="${nextIndex}">Próximo Ep. ${nextEpisode}</button>
-                                <button class="action-button report-error" aria-label="Reportar erro para este episódio" data-index="${index}">⚠ Reportar Erro</button>
-                                <button class="action-button episodes" aria-label="Ver lista de episódios">📑 Episódios</button>
-                            </div>
+                infoSlide.innerHTML = `
+                    <div class="slide-content">
+                        <div class="title">${item.title.toLowerCase()}</div>
+                        <div class="episode">${item.episode}</div>
+                        <div class="duration">${item.duration}</div>
+                        <div class="synopsis">${item.synopsis || 'Sinopse indisponível'}</div>
+                        <div class="actions">
+                            <button class="action-button watch-now" aria-label="Assistir ${item.title} ${item.episode} agora" data-index="${index}">▶ Assistir agora</button>
+                            <button class="action-button next-ep" aria-label="Ir para o próximo episódio ${nextEpisode}" data-index="${nextIndex}">Próximo Ep. ${nextEpisode}</button>
+                            <button class="action-button report-error" aria-label="Reportar erro para este episódio" data-index="${index}">⚠ Reportar Erro</button>
+                            <button class="action-button episodes" aria-label="Ver lista de episódios">📑 Episódios</button>
                         </div>
-                    `;
-                    elements.infoSlidesWrapper.appendChild(infoSlide);
-                });
+                    </div>
+                `;
+                elements.infoSlidesWrapper.appendChild(infoSlide);
+            });
+            elements.infoSlidesWrapper.querySelectorAll('.watch-now').forEach(button => {
+                button.onclick = () => watchNow(parseInt(button.dataset.index));
+            });
+            elements.infoSlidesWrapper.querySelectorAll('.next-ep').forEach(button => {
+                button.onclick = () => goToSlide(parseInt(button.dataset.index));
+            });
+            elements.infoSlidesWrapper.querySelectorAll('.report-error').forEach(button => {
+                button.onclick = () => reportError(parseInt(button.dataset.index));
+            });
+            elements.infoSlidesWrapper.querySelectorAll('.episodes').forEach(button => {
+                button.onclick = openEpisodesMenu;
+            });
 
-                // Adicionar/Atualizar click handlers
-                elements.infoSlidesWrapper.querySelectorAll('.watch-now').forEach(button => {
-                    button.onclick = () => watchNow(parseInt(button.dataset.index));
-                });
-                elements.infoSlidesWrapper.querySelectorAll('.next-ep').forEach(button => {
-                    button.onclick = () => goToSlide(parseInt(button.dataset.index));
-                });
-                elements.infoSlidesWrapper.querySelectorAll('.report-error').forEach(button => {
-                    button.onclick = () => reportError(parseInt(button.dataset.index));
-                });
-                elements.infoSlidesWrapper.querySelectorAll('.episodes').forEach(button => {
-                    button.onclick = openEpisodesMenu;
-                });
-                
-                updateSlides();
-                updateInfoSlide(state.currentSlide);
+            updateSlides();
+            updateInfoSlide(state.currentSlide);
+        }
+
+        function createEpisodesMenu() {
+            elements.episodesMenuList.innerHTML = '';
+            config.series.forEach((item, index) => {
+                const episodeButton = document.createElement('button');
+                episodeButton.className = `episodes-menu__item ${index === state.lastWatchedEpisode ? 'last-watched' : ''}`;
+                episodeButton.dataset.index = index;
+                episodeButton.textContent = `${item.episode}: ${item.synopsis.substring(0, 50)}${item.synopsis.length > 50 ? '...' : ''}`;
+                episodeButton.setAttribute('aria-label', `Selecionar ${item.episode}`);
+                episodeButton.onclick = () => selectEpisode(index);
+                elements.episodesMenuList.appendChild(episodeButton);
+            });
+        }
+
+        function setupEventListeners() {
+            const searchInput = document.getElementById('search-input');
+            const menuToggle = document.getElementById('menu-icon');
+            const mainMenu = document.getElementById('main-menu');
+            const themeToggle = document.getElementById('theme-toggle');
+            const body = document.body;
+            const zoomInBtn = document.getElementById('zoom-in-btn');
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            const zoomContainer = document.getElementById('zoom-container');
+
+            let currentScale = 1.0;
+            const step = 0.1;
+            const maxScale = 1.5;
+            const minScale = 0.8;
+
+            function updateZoom() {
+                zoomContainer.style.transform = `scale(${currentScale})`;
+                showNotification(`Zoom: ${Math.round(currentScale * 100)}%`);
+                zoomInBtn.disabled = currentScale >= maxScale;
+                zoomOutBtn.disabled = currentScale <= minScale;
             }
 
-            function createEpisodesMenu() {
-                elements.episodesMenuList.innerHTML = '';
-                config.series.forEach((item, index) => {
-                    const episodeButton = document.createElement('button');
-                    episodeButton.className = `episodes-menu__item ${index === state.lastWatchedEpisode ? 'last-watched' : ''}`;
-                    episodeButton.dataset.index = index;
-                    episodeButton.textContent = `${item.episode}: ${item.synopsis.substring(0, 50)}${item.synopsis.length > 50 ? '...' : ''}`;
-                    episodeButton.setAttribute('aria-label', `Selecionar ${item.episode}`);
-                    episodeButton.onclick = () => selectEpisode(index);
-                    elements.episodesMenuList.appendChild(episodeButton);
-                });
-            }
+            zoomInBtn.addEventListener('click', () => {
+                if (currentScale < maxScale) {
+                    currentScale = Math.min(maxScale, currentScale + step);
+                    updateZoom();
+                }
+            });
 
-            function setupEventListeners() {
-                elements.slidesWrapper.addEventListener('click', handleSlideClick);
-                elements.slidesWrapper.addEventListener('touchstart', touchStartSlides, { passive: true });
-                elements.slidesWrapper.addEventListener('touchmove', touchMoveSlides, { passive: false });
-                elements.slidesWrapper.addEventListener('touchend', touchEndSlides, { passive: true });
-                elements.slidesWrapper.addEventListener('wheel', handleWheel, { passive: true });
-                document.addEventListener('keydown', handleKeyboardNavigation);
-                elements.episodesMenuOverlay.addEventListener('click', closeEpisodesMenu);
+            zoomOutBtn.addEventListener('click', () => {
+                if (currentScale > minScale) {
+                    currentScale = Math.max(minScale, currentScale - step);
+                    updateZoom();
+                }
+            });
 
-                // NOVO: Adiciona o listener para o Ad de Clique Global (Item 6)
-                // Usando o elemento raiz e a fase de captura para pegar o clique antes de outros elementos.
-                document.documentElement.addEventListener('click', handleGlobalClick, { capture: true });
-                document.documentElement.addEventListener('touchstart', handleGlobalClick, { capture: true });
-            }
+            updateZoom();
 
-            function handleSlideClick(e) {
-                const slide = e.target.closest('.slide');
-                if (!slide) return;
-                const index = parseInt(slide.dataset.index);
+            // Lógica do botão de busca (lupa)
+            searchInput.addEventListener('input', (e) => {
+                window.searchAnimes(e.target.value);
+            });
+            menuToggle?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                e.preventDefault();
-                goToSlide(index);
-            }
-
-            function handleKeyboardNavigation(e) {
-                if (e.key === 'ArrowLeft') prevSlide();
-                else if (e.key === 'ArrowRight') nextSlide();
-            }
-
-            function handleWheel(e) {
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                    e.preventDefault();
-                    return;
+                mainMenu.classList.toggle('open');
+                if (mainMenu.classList.contains('open')) {
+                    setTimeout(() => searchInput.focus(), 300);
                 }
-                e.preventDefault();
-                if (e.deltaX > 0) nextSlide();
-                else prevSlide();
-            }
-
-            let lastTouchMoveSlides = 0;
-            function touchStartSlides(e) {
-                state.isDraggingSlides = true;
-                state.startX = e.touches[0].clientX;
-                state.lastTouchTime = Date.now();
-                updateSwipeIndicators();
-            }
-
-            function touchMoveSlides(e) {
-                if (!state.isDraggingSlides) return;
-                const now = Date.now();
-                if (now - lastTouchMoveSlides < 16) return;
-                lastTouchMoveSlides = now;
-                state.currentX = e.touches[0].clientX;
-                const diffX = state.startX - state.currentX;
-                const diffY = Math.abs(e.touches[0].clientY - e.touches[0].clientY);
-                if (diffY > Math.abs(diffX)) {
-                    e.preventDefault();
-                    return;
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#main-menu') && !e.target.closest('#menu-icon')) {
+                    mainMenu.classList.remove('open');
                 }
-                e.preventDefault();
-                const slides = elements.slidesWrapper.querySelectorAll('.slide');
-                const maxTranslate = 130;
-                slides.forEach((slide, i) => {
-                    const isActive = i === state.currentSlide;
-                    const isPrev = i === (state.currentSlide - 1 + config.series.length) % config.series.length;
-                    const isNext = i === (state.currentSlide + 1) % config.series.length;
-                    let translateX = 0;
-                    let scale = 0.9;
-                    let opacity = 0.4;
-
-                    if (isPrev) {
-                        translateX = -maxTranslate + (diffX / 1.5);
-                        opacity = Math.min(1, 0.4 + Math.abs(diffX / 300));
-                        scale = Math.min(0.9, 0.9 + (Math.abs(diffX) / 1000));
-                    } else if (isNext) {
-                        translateX = maxTranslate - (diffX / 1.5);
-                        opacity = Math.min(1, 0.4 + Math.abs(diffX / 300));
-                        scale = Math.min(0.9, 0.9 + (Math.abs(diffX) / 1000));
-                    } else if (isActive) {
-                        translateX = diffX / 5;
-                        opacity = 1;
-                        scale = 1.15;
-                    }
-
-                    slide.style.transform = `translateX(${translateX}%) scale(${scale})`;
-                    slide.style.opacity = opacity;
-                });
-                requestAnimationFrame(updateSwipeIndicators);
-            }
-
-            function touchEndSlides(e) {
-                if (!state.isDraggingSlides) return;
-                const diffX = state.startX - state.currentX;
-                const timeElapsed = Date.now() - state.lastTouchTime;
-                if (Math.abs(diffX) > config.swipeThreshold && timeElapsed > 100) {
-                    if (diffX > 0) nextSlide();
-                    else prevSlide();
-                } else if (Math.abs(diffX) > 10 && timeElapsed <= 100) { // Flick
-                    if (diffX > 0) nextSlide();
-                    else prevSlide();
-                }
-                state.isDraggingSlides = false;
-                state.startX = 0;
-                state.currentX = 0;
-                updateSlides();
-                updateSwipeIndicators();
-            }
-
-            function updateSwipeIndicators() {
-                const indicators = elements.slidesWrapper.querySelectorAll('.swipe-indicator');
-                indicators.forEach(indicator => {
-                    indicator.style.opacity = state.isDraggingSlides ? '1' : '0';
-                });
-            }
-
-            function updateSlides() {
-                requestAnimationFrame(() => {
-                    const slides = elements.slidesWrapper.querySelectorAll('.slide');
-                    const items = config.series;
-
-                    // Update carousel title
-                    elements.carouselTitle.textContent = `Death Note ${items[state.currentSlide].episode.replace('Ep. ', '')}`;
-
-                    slides.forEach((slide, i) => {
-                        slide.classList.remove('active', 'prev', 'next');
-                        if (i === state.currentSlide) {
-                            slide.classList.add('active');
-                            slide.style.transform = 'translateX(0) scale(1.15)';
-                            slide.style.opacity = '1';
-                            slide.style.width = '306px';
-                            slide.style.height = '229.5px';
-                        } else {
-                            if (i === (state.currentSlide - 1 + items.length) % items.length) {
-                                slide.classList.add('prev');
-                                slide.style.transform = 'translateX(-130%) scale(0.9)';
-                            } else if (i === (state.currentSlide + 1) % items.length) {
-                                slide.classList.add('next');
-                                slide.style.transform = 'translateX(130%) scale(0.9)';
-                            }
-                            slide.style.opacity = '0.4';
-                            slide.style.width = '204px';
-                            slide.style.height = '153px';
-                        }
-                    });
-
-                    updateInfoSlide(state.currentSlide);
-                });
-            }
-
-            function updateInfoSlide(index) {
-                const infoSlides = elements.infoSlidesWrapper.querySelectorAll('.info-slide');
-                infoSlides.forEach((slide, i) => {
-                    slide.classList.toggle('active', i === index);
-                });
-            }
-
-            function nextSlide() {
-                state.currentSlide = (state.currentSlide + 1) % config.series.length;
-                updateSlides();
-            }
-
-            function prevSlide() {
-                state.currentSlide = (state.currentSlide - 1 + config.series.length) % config.series.length;
-                updateSlides();
-            }
-
-            function goToSlide(index) {
-                state.currentSlide = index;
-                updateSlides();
-            }
-
-            function toggleWatchNowButtons(enabled) {
-                const buttons = document.querySelectorAll('.watch-now');
-                buttons.forEach(button => {
-                    button.disabled = !enabled;
-                });
-            }
-
-            // FUNÇÃO watchNow ADAPTADA COM RASTREAMENTO FIREBASE (Item 4 e 5)
-            function watchNow(index) {
-                const item = config.series[index];
-                if (!item || !item.link || state.isWatchNowBlocked) {
-                    showNotification('Erro ao acessar o episódio. Tente novamente.');
-                    return;
-                }
-                state.isWatchNowBlocked = true;
-                toggleWatchNowButtons(false);
-
-                // 1. Salvar último episódio assistido
-                state.lastWatchedEpisode = index;
-                localStorage.setItem('lastWatchedEpisode', index);
-                createEpisodesMenu(); // Atualiza menu
-
-                const message = state.isAdNext 
-                    ? 'Você será redirecionado para uma propaganda. Volte para assistir ao vídeo.'
-                    : 'Você será redirecionado para o vídeo do episódio no Google Drive.';
-                showNotification(message);
-
-                // 2. RASTREAMENTO: Acesso (início)
-                recordUserInteraction('Acesso', index);
-
-                setTimeout(() => {
-                    try {
-                        const adUrl = item.adUrl || GLOBAL_AD_URL; 
-                        const url = state.isAdNext ? adUrl : item.link;
-                        
-                        if (state.isAdNext) {
-                             // 3. RASTREAMENTO: Propaganda Visualizada
-                            recordUserInteraction('Propaganda Visualizada', index, adUrl);
-                        }
-                        
-                        const win = window.open(url, '_blank');
-                        if (!win) {
-                            showNotification('Pop-up bloqueado. Permita pop-ups e tente novamente.');
-                        } 
-                        state.isAdNext = !state.isAdNext;
-                    } catch (e) {
-                        console.error('Redirect error:', e);
-                        showNotification('Erro ao redirecionar. Tente novamente.');
-                    }
-
-                    const unlockDelay = state.isAdNext ? 2000 : 0;
-                    setTimeout(() => {
-                        state.isWatchNowBlocked = false;
-                        toggleWatchNowButtons(true);
-                    }, unlockDelay);
-                }, 4000);
-            }
-
-            // FUNÇÃO reportError ADAPTADA COM RASTREAMENTO FIREBASE (Item 5)
-            function reportError(index) {
-                const item = config.series[index];
-                const message = encodeURIComponent(`Reporte um erro para o episódio ${item.episode} de ${item.title}`);
-                const whatsappUrl = `https://api.whatsapp.com/send?phone=5535984072446&text=${message}`;
-                window.open(whatsappUrl, '_blank');
-                showNotification('Redirecionando para reportar erro no WhatsApp!');
-
-                // RASTREAMENTO: Reportar Erro Acionado
-                recordUserInteraction('Reportar Erro Acionado', index);
-            }
-
-            function showNotification(message) {
-                notification.textContent = message;
-                notification.classList.add('show');
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 4000);
-            }
-
-            function openEpisodesMenu() {
-                state.isEpisodesMenuOpen = true;
-                elements.episodesMenu.classList.add('open');
-                elements.episodesMenuOverlay.classList.add('active');
-            }
-
-            function closeEpisodesMenu() {
-                state.isEpisodesMenuOpen = false;
-                elements.episodesMenu.classList.remove('open');
-                elements.episodesMenuOverlay.classList.remove('active');
-            }
-
-            function selectEpisode(index) {
-                goToSlide(index);
-                closeEpisodesMenu();
-            }
-
-            function toggleTheme() { // Função local para o carrossel, a global está no novo script do cabeçalho
+            });
+            // Lógica do botão de tema (sol)
+            function toggleTheme() {
                 const currentTheme = body.dataset.theme;
-                body.dataset.theme = currentTheme === 'light' ? 'dark' : 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                body.dataset.theme = newTheme;
+                localStorage.setItem('theme', newTheme);
+            }
+            themeToggle?.addEventListener('click', toggleTheme);
+            function updateThemeIcon() {
+                themeToggle.innerHTML = `<i class="fas fa-adjust"></i>`;
             }
 
+            new MutationObserver(updateThemeIcon).observe(body, { attributes: true, attributeFilter: ['data-theme'] });
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.dataset.theme = savedTheme;
+            updateThemeIcon();
+
+            // Lógica do Carrossel de Episódios
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            elements.slidesWrapper.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            elements.slidesWrapper.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+
+            function handleSwipe() {
+                const diff = touchStartX - touchEndX;
+                if (diff > 50) {
+                    nextSlide();
+                } else if (diff < -50) {
+                    prevSlide();
+                }
+            }
+
+            elements.slidesWrapper.addEventListener('click', handleSlideClick);
+            document.addEventListener('keydown', handleKeyboardNavigation);
+            elements.episodesMenuOverlay.addEventListener('click', closeEpisodesMenu);
+            document.documentElement.addEventListener('click', handleGlobalClick, { capture: true });
+        }
+
+        function handleSlideClick(e) {
+            const slide = e.target.closest('.slide');
+            if (!slide) return;
+            const index = parseInt(slide.dataset.index);
+            e.stopPropagation();
+            e.preventDefault();
+            goToSlide(index);
+        }
+
+        function handleKeyboardNavigation(e) {
+            if (e.key === 'ArrowLeft') prevSlide();
+            else if (e.key === 'ArrowRight') nextSlide();
+        }
+
+        function nextSlide() {
+            state.currentSlide = (state.currentSlide + 1) % config.series.length;
+            updateSlides();
+        }
+
+        function prevSlide() {
+            state.currentSlide = (state.currentSlide - 1 + config.series.length) % config.series.length;
+            updateSlides();
+        }
+
+        function goToSlide(index) {
+            state.currentSlide = index;
+            updateSlides();
+        }
+
+        function updateSlides() {
+            requestAnimationFrame(() => {
+                const slides = elements.slidesWrapper.querySelectorAll('.slide');
+                const items = config.series;
+                elements.carouselTitle.textContent = `Death Note ${items[state.currentSlide].episode.replace('Ep. ', '')}`;
+                slides.forEach((slide, i) => {
+                    slide.classList.remove('active', 'prev', 'next');
+                    if (i === state.currentSlide) {
+                        slide.classList.add('active');
+                        slide.style.transform = 'translateX(0) scale(1.15)';
+                        slide.style.opacity = '1';
+                        slide.style.width = '306px';
+                        slide.style.height = '229.5px';
+                    } else {
+                        if (i === (state.currentSlide - 1 + items.length) % items.length) {
+                            slide.classList.add('prev');
+                            slide.style.transform = 'translateX(-130%) scale(0.9)';
+                        } else if (i === (state.currentSlide + 1) % items.length) {
+                            slide.classList.add('next');
+                            slide.style.transform = 'translateX(130%) scale(0.9)';
+                        }
+                        slide.style.opacity = '0.4';
+                        slide.style.width = '204px';
+                        slide.style.height = '153px';
+                    }
+                });
+                updateInfoSlide(state.currentSlide);
+            });
+        }
+
+        function updateInfoSlide(index) {
+            const infoSlides = elements.infoSlidesWrapper.querySelectorAll('.info-slide');
+            infoSlides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+        }
+
+        function toggleWatchNowButtons(enabled) {
+            const buttons = document.querySelectorAll('.watch-now');
+            buttons.forEach(button => {
+                button.disabled = !enabled;
+            });
+        }
+
+        function watchNow(index) {
+            const item = config.series[index];
+            if (!item || !item.link || state.isWatchNowBlocked) {
+                showNotification('Erro ao acessar o episódio. Tente novamente.');
+                return;
+            }
+            state.isWatchNowBlocked = true;
+            toggleWatchNowButtons(false);
+            state.lastWatchedEpisode = index;
+            localStorage.setItem('lastWatchedEpisode', index);
+            createEpisodesMenu();
+            const message = state.isAdNext
+                ? 'Você será redirecionado para uma propaganda. Volte para assistir ao vídeo.'
+                : 'Você será redirecionado para o vídeo do episódio no Google Drive.';
+            showNotification(message);
+            recordUserInteraction('Acesso', index);
+            setTimeout(() => {
+                try {
+                    const adUrl = item.adUrl || GLOBAL_AD_URL;
+                    const url = state.isAdNext ? adUrl : item.link;
+
+                    if (state.isAdNext) {
+                        recordUserInteraction('Propaganda Visualizada', index, adUrl);
+                    }
+
+                    const win = window.open(url, '_blank');
+                    if (!win) {
+                        showNotification('Pop-up bloqueado. Permita pop-ups e tente novamente.');
+                    }
+                    state.isAdNext = !state.isAdNext;
+                } catch (e) {
+                    console.error('Redirect error:', e);
+                    showNotification('Erro ao redirecionar. Tente novamente.');
+                }
+                const unlockDelay = state.isAdNext ? 2000 : 0;
+                setTimeout(() => {
+                    state.isWatchNowBlocked = false;
+                    toggleWatchNowButtons(true);
+                }, unlockDelay);
+            }, 4000);
+        }
+
+        function reportError(index) {
+            const item = config.series[index];
+            const message = encodeURIComponent(`Reporte um erro para o episódio ${item.episode} de ${item.title}`);
+            const whatsappUrl = `https://api.whatsapp.com/send?phone=5535984072446&text=${message}`;
+            window.open(whatsappUrl, '_blank');
+            showNotification('Redirecionando para reportar erro no WhatsApp!');
+            recordUserInteraction('Reportar Erro Acionado', index);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        function openEpisodesMenu() {
+            state.isEpisodesMenuOpen = true;
+            elements.episodesMenu.classList.add('open');
+            elements.episodesMenuOverlay.classList.add('active');
+        }
+
+        function closeEpisodesMenu() {
+            state.isEpisodesMenuOpen = false;
+            elements.episodesMenu.classList.remove('open');
+            elements.episodesMenuOverlay.classList.remove('active');
+        }
+
+        function selectEpisode(index) {
+            goToSlide(index);
+            closeEpisodesMenu();
+        }
+
+        // --- LÓGICA DO CARROSSEL DE PROPAGANDAS ---
+        const PROPAGANDAS = [
+            { id: 'ad-1', title: 'Shopee: Descontos de até 50%!', url: 'https://shopee.com.br' },
+            { id: 'ad-2', title: 'Amazon: Frete Grátis em Milhares de Itens', url: 'https://amazon.com.br' },
+            { id: 'ad-3', title: 'Mercado Livre: Seu Produto Chega Mais Rápido!', url: 'https://mercadolivre.com.br' },
+            { id: 'ad-4', title: 'Magazine Luiza: Ofertas do Dia', url: 'https://magazineluiza.com.br' },
+            { id: 'ad-5', title: 'Casas Bahia: Liquidação Total!', url: 'https://casasbahia.com.br' }
+        ];
+
+        function createPropagandaCard(ad) {
+            const card = document.createElement('div');
+            card.classList.add('ad-card', 'propaganda', 'fade-in');
+            card.setAttribute('onclick', `window.open('${ad.url}', '_blank')`);
+            card.innerHTML = `<h3>${ad.title}</h3>`;
+            return card;
+        }
+
+        function loadPropagandaCarousel(carouselId, ads) {
+            const carousel = document.getElementById(carouselId);
+            if (!carousel) return;
+            carousel.innerHTML = '';
+            ads.forEach(ad => {
+                carousel.appendChild(createPropagandaCard(ad));
+            });
+            ads.forEach(ad => {
+                carousel.appendChild(createPropagandaCard(ad));
+            });
+        }
+
+        function autoScrollCarousel(carouselId, scrollTimeMs, cardWidth) {
+            const carousel = document.getElementById(carouselId);
+            if (!carousel) return;
+
+            let scrollInterval;
+            let isHovering = false;
+            const startScroll = () => {
+                scrollInterval = setInterval(() => {
+                    if (isHovering) return;
+                    const currentScroll = carousel.scrollLeft;
+                    const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+                    const nextScroll = currentScroll + cardWidth + 12;
+                    if (currentScroll >= maxScroll - 10) {
+                        carousel.scrollLeft = 0;
+                    } else {
+                        carousel.scroll({ left: nextScroll, behavior: 'smooth' });
+                    }
+                }, scrollTimeMs);
+            };
+            const stopScroll = () => clearInterval(scrollInterval);
+            carousel.addEventListener('mouseenter', () => isHovering = true);
+            carousel.addEventListener('mouseleave', () => isHovering = false);
+            carousel.addEventListener('touchstart', () => isHovering = true, { passive: true });
+            carousel.addEventListener('touchend', () => isHovering = false);
+
+            startScroll();
+        }
+
+        function setupPropagandaCarousels() {
+            const carouselData = [
+                { id: 'propaganda-carousel-1', delay: 8000, cardWidth: 200 }
+            ];
+            carouselData.forEach(data => {
+                loadPropagandaCarousel(data.id, PROPAGANDAS);
+                autoScrollCarousel(data.id, data.delay, data.cardWidth);
+            });
+        }
+
+        // INICIALIZAÇÃO GERAL
+        document.addEventListener('DOMContentLoaded', () => {
             initialize();
+            setupPropagandaCarousels();
         });
     </script>
 </body>
